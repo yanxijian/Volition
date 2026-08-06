@@ -37,10 +37,10 @@
 | 角色 | 职责 |
 |------|------|
 | **Host（壳）** | 外框、Tab、启停 Client、嵌入容器、IPC 编排；**不**实现具体文档格式逻辑 |
-| **Client** | 真正拥有业务窗口；按 `pageType` / `appName` 分进程；同类型多文档默认同进程多子窗 |
+| **Client** | 真正拥有业务窗口；按 `clientKind` / `appName` 分进程；同类型多文档默认同进程多子窗 |
 | **协议** | `shell.ipc.v1`（Hello / caps / 心跳 / createWindow / embed…） |
 
-对齐 MPS 默认约定：**一 pageType ↔ 一个 ClientSession**；跨类型可同壳多 Tab。
+对齐 MPS 默认约定：**一 clientKind ↔ 一个 ClientSession**；跨类型可同壳多 Tab。
 
 ---
 
@@ -50,7 +50,7 @@
 
 ### 3.1 建议拆法
 
-| Client（pageType） | 文件类型 | 理由 |
+| Client（clientKind） | 文件类型 | 理由 |
 |--------------------|----------|------|
 | **text** | `.txt`、`.xml`（可再扩 `.json`、`.ini`…） | 同一套编辑器内核 + 语法高亮 / 校验 / 折叠插件即可；同故障域、同 UI 模型（缓冲、撤销、查找、编码） |
 | **markdown** | `.md` | **取决于预览实现**（见 §3.3、§5）；未定前可先作为 text 的一种 mode |
@@ -91,7 +91,7 @@
 5. 再考虑 json/ini 等并入 text；PDF 批注/表单等分期
 ```
 
-Host 侧 Tab 核心**不必**为每种后缀改一遍逻辑；后缀 → pageType 的映射放在打开文件 / 启动器配置层。
+Host 侧 Tab 核心**不必**为每种后缀改一遍逻辑；后缀 → clientKind 的映射放在打开文件 / 启动器配置层。
 
 ---
 
@@ -235,7 +235,7 @@ P2（产品明确要求）
 
 ```text
 用户打开 path
-  → 按扩展名映射 pageType
+  → 按扩展名映射 clientKind
   → Host 确保对应 ClientSession 存活
   → CreateWindow / embed
   → Client 内按 mode 打开缓冲或文档模型
