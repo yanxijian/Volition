@@ -4,6 +4,7 @@
 #include <QString>
 
 #ifdef Q_OS_WIN
+#include <cstdio>
 #include <windows.h>
 #endif
 
@@ -18,6 +19,8 @@ namespace volition
 		const HMODULE mod = LoadLibraryW(reinterpret_cast<LPCWSTR>(dllName.utf16()));
 		if (!mod)
 		{
+			const DWORD err = GetLastError();
+			fwprintf(stderr, L"[volition] LoadLibraryW(%s) failed err=%lu\n", reinterpret_cast<LPCWSTR>(dllName.utf16()), err);
 			return 3;
 		}
 		using RunFn = int (*)(int, char**);

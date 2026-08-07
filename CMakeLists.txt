@@ -62,8 +62,8 @@ add_subdirectory(clients/markdown)
 add_subdirectory(clients/pdf)
 
 # Stage thin exes + business DLLs beside host (runtime DLLs also copied on each link via volition_copy_runtime_deps).
-# pdf Client is isolated under bin/pdf/ (own abseil); Host only needs the thin exe path registered.
-add_custom_target(volition_stage_clients ALL
+# pdf Client under bin/pdf/; pdfium helper under bin/pdf/render/ (separate abseil).
+set(_volition_stage_cmds
   COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>
   COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>/pdf
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -78,12 +78,27 @@ add_custom_target(volition_stage_clients ALL
           $<TARGET_FILE:volition_pdf>
           $<TARGET_FILE:volition_pdf_lib>
           $<TARGET_FILE_DIR:volition_host>/pdf
+)
+set(_volition_stage_deps
+  volition_host
+  volition_text volition_text_lib
+  volition_markdown volition_markdown_lib
+  volition_pdf volition_pdf_lib
+)
+if(TARGET volition_pdf_render)
+  list(APPEND _volition_stage_cmds
+    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>/pdf/render
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:volition_pdf_render>
+            $<TARGET_FILE_DIR:volition_host>/pdf/render
+  )
+  list(APPEND _volition_stage_deps volition_pdf_render)
+endif()
+
+add_custom_target(volition_stage_clients ALL
+  ${_volition_stage_cmds}
   COMMENT "Copy Client thin exes + DLLs beside volition_host (pdf under pdf/)"
-  DEPENDS
-    volition_host
-    volition_text volition_text_lib
-    volition_markdown volition_markdown_lib
-    volition_pdf volition_pdf_lib
+  DEPENDS ${_volition_stage_deps}
   VERBATIM
 )
 
