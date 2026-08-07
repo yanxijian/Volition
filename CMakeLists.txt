@@ -61,7 +61,13 @@ add_subdirectory(clients/common)
 add_subdirectory(host)
 add_subdirectory(clients/text)
 add_subdirectory(clients/markdown)
-add_subdirectory(clients/pdf)
+set(_volition_have_pdf_client FALSE)
+if(VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TARGET STREQUAL "")
+  add_subdirectory(clients/pdf)
+  set(_volition_have_pdf_client TRUE)
+else()
+  message(STATUS "Volition: skipping clients/pdf (no pdfium; CI may omit staged prefix)")
+endif()
 
 # Stage thin exes + business DLLs beside host (runtime DLLs also copied on each link via volition_copy_runtime_deps).
 set(_volition_stage_cmds
@@ -74,17 +80,21 @@ set(_volition_stage_cmds
           $<TARGET_FILE:volition_markdown>
           $<TARGET_FILE:volition_markdown_lib>
           $<TARGET_FILE_DIR:volition_host>
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different
-          $<TARGET_FILE:volition_pdf>
-          $<TARGET_FILE:volition_pdf_lib>
-          $<TARGET_FILE_DIR:volition_host>
 )
 set(_volition_stage_deps
   volition_host
   volition_text volition_text_lib
   volition_markdown volition_markdown_lib
-  volition_pdf volition_pdf_lib
 )
+if(_volition_have_pdf_client)
+  list(APPEND _volition_stage_cmds
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:volition_pdf>
+            $<TARGET_FILE:volition_pdf_lib>
+            $<TARGET_FILE_DIR:volition_host>
+  )
+  list(APPEND _volition_stage_deps volition_pdf volition_pdf_lib)
+endif()
 if(VOLITION_PDF_OOP_RENDER AND TARGET volition_pdf_render)
   list(APPEND _volition_stage_cmds
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>/render
@@ -114,7 +124,7 @@ if(NOT WINDEPLOYQT_EXECUTABLE)
 endif()
 
 if(WIN32 AND WINDEPLOYQT_EXECUTABLE)
-  add_custom_target(volition_deploy_qt ALL
+  set(_volition_deploy_cmds
     COMMAND "${WINDEPLOYQT_EXECUTABLE}"
             "$<IF:$<CONFIG:Debug>,--debug,--release>"
             --no-translations
@@ -128,10 +138,17 @@ if(WIN32 AND WINDEPLOYQT_EXECUTABLE)
             "$<IF:$<CONFIG:Debug>,--debug,--release>"
             --no-translations
             $<TARGET_FILE:volition_markdown>
-    COMMAND "${WINDEPLOYQT_EXECUTABLE}"
-            "$<IF:$<CONFIG:Debug>,--debug,--release>"
-            --no-translations
-            $<TARGET_FILE:volition_pdf>
+  )
+  if(_volition_have_pdf_client)
+    list(APPEND _volition_deploy_cmds
+      COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+              "$<IF:$<CONFIG:Debug>,--debug,--release>"
+              --no-translations
+              $<TARGET_FILE:volition_pdf>
+    )
+  endif()
+  add_custom_target(volition_deploy_qt ALL
+    ${_volition_deploy_cmds}
     COMMENT "windeployqt: deploy Qt runtime beside Volition binaries"
     DEPENDS volition_stage_clients
     VERBATIM
@@ -139,7 +156,6 @@ if(WIN32 AND WINDEPLOYQT_EXECUTABLE)
 elseif(WIN32)
   message(WARNING "windeployqt not found; set QTDIR or PATH — apps need Qt DLLs beside exe or on PATH")
 endif()
-
 message(STATUS "Volition ${PROJECT_VERSION}")
 message(STATUS "  Qt: ${Qt6_VERSION}")
 message(STATUS "  embed: mps=${VOLITION_MPS_VIA_SOURCE} qte=${VOLITION_QTE_VIA_SOURCE} qfr=${VOLITION_QFR_VIA_SOURCE} pdfium_src=${VOLITION_PDFIUM_VIA_SOURCE} pdfium_prefix=${VOLITION_PDFIUM_VIA_PREFIX}")

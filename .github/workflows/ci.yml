@@ -111,6 +111,7 @@ jobs:
         working-directory: Volition
         shell: pwsh
         run: |
+          # PDF Client is skipped when pdfium is not staged (VOLITION_REQUIRE_PDFIUM=OFF).
           ./scripts/smoke_bin_layout.ps1 `
             -BinDir ./build/bin `
             -AbseilPinPrefix "$env:GITHUB_WORKSPACE/AbseilPin/prefix/20260107.1"

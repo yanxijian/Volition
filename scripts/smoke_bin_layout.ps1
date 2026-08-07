@@ -47,13 +47,23 @@ if (Test-Path -LiteralPath (Join-Path $BinDir "pdf")) {
 }
 Ok "no nested bin/pdf/"
 
-foreach ($name in @("volition_host.exe", "volition_text.exe", "volition_markdown.exe", "volition_pdf.exe", "volition_pdf.dll")) {
+foreach ($name in @("volition_host.exe", "volition_text.exe", "volition_markdown.exe")) {
   $p = Join-Path $BinDir $name
   if (-not (Test-Path -LiteralPath $p)) {
     Fail "Missing $name under $BinDir"
   }
 }
-Ok "Host + Client thin exes + volition_pdf.dll"
+$pdfExe = Join-Path $BinDir "volition_pdf.exe"
+$pdfDll = Join-Path $BinDir "volition_pdf.dll"
+$havePdfClient = (Test-Path -LiteralPath $pdfExe) -and (Test-Path -LiteralPath $pdfDll)
+if ($RequirePdfium -and -not $havePdfClient) {
+  Fail "Missing volition_pdf.exe / volition_pdf.dll under $BinDir (-RequirePdfium)"
+}
+if ($havePdfClient) {
+  Ok "Host + Client thin exes + volition_pdf.dll"
+} else {
+  Ok "Host + text/markdown Clients (PDF Client omitted — no pdfium in this build)"
+}
 
 $renderExe = Join-Path $BinDir "render\volition_pdf_render.exe"
 if (Test-Path -LiteralPath $renderExe) {
@@ -110,15 +120,17 @@ if ($hasPdfium) {
   }
   Ok "pdfium.dll present; no V8/libc++/third_party abseil in bin/"
 
-  $dumpbin = Get-Command dumpbin.exe -ErrorAction SilentlyContinue
-  if ($dumpbin) {
-    $deps = & dumpbin.exe /dependents (Join-Path $BinDir "volition_pdf.dll") 2>$null | Out-String
-    if ($deps -notmatch "(?i)pdfium\.dll") {
-      Fail "volition_pdf.dll does not list pdfium.dll as a dependent"
+  if ($havePdfClient) {
+    $dumpbin = Get-Command dumpbin.exe -ErrorAction SilentlyContinue
+    if ($dumpbin) {
+      $deps = & dumpbin.exe /dependents $pdfDll 2>$null | Out-String
+      if ($deps -notmatch "(?i)pdfium\.dll") {
+        Fail "volition_pdf.dll does not list pdfium.dll as a dependent"
+      }
+      Ok "volition_pdf.dll depends on pdfium.dll"
+    } else {
+      Write-Host "NOTE dumpbin not on PATH; skipped import check"
     }
-    Ok "volition_pdf.dll depends on pdfium.dll"
-  } else {
-    Write-Host "NOTE dumpbin not on PATH; skipped import check"
   }
 } else {
   Write-Host "NOTE pdfium.dll absent; skipped in-process PDF checks (configure with staged pdfium_all/output to enable)"
