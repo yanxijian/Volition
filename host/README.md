@@ -11,7 +11,7 @@ Volition **Host**（MPS 壳编排）→ `volition_host.exe`。
 
 ## 不负责
 
-- 文档格式逻辑、Ribbon、中栏文档 Tab（在各 Client **DLL** 的 `WorkspaceWindow` / `DocumentStack`）
+- 文档格式逻辑、Ribbon、中栏文档面（在各 Client **DLL** 的 `WorkspaceWindow` / `DocumentStack`）
 - **不**在 Host 内 `LoadLibrary` Client DLL（形态 A：进程内由薄 exe 加载）
 
 见 [docs/zh/product-plan.md](../docs/zh/product-plan.md) §3–§5。

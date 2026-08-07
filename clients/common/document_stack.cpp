@@ -4,6 +4,7 @@
 #include <QFileInfo>
 #include <QLabel>
 #include <QMessageBox>
+#include <QTabBar>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -26,31 +27,41 @@ namespace volition
 		: QTabWidget(parent)
 		, m_factory(makePlaceholderDocument)
 	{
-		setTabsClosable(true);
 		setDocumentMode(true);
-		setMovable(true);
 
-		auto* addBtn = new QToolButton(this);
-		addBtn->setText(QStringLiteral("+"));
-		addBtn->setAutoRaise(true);
-		setCornerWidget(addBtn, Qt::TopRightCorner);
-		connect(addBtn, &QToolButton::clicked, this,
-				[this]()
-				{
-					addNewDocument();
-				});
-		connect(this, &QTabWidget::tabCloseRequested, this,
-				[this](int index)
-				{
-					if (index < 0 || index >= count())
+		if (multiDocumentUiEnabled())
+		{
+			setTabsClosable(true);
+			setMovable(true);
+
+			auto* addBtn = new QToolButton(this);
+			addBtn->setText(QStringLiteral("+"));
+			addBtn->setAutoRaise(true);
+			setCornerWidget(addBtn, Qt::TopRightCorner);
+			connect(addBtn, &QToolButton::clicked, this,
+					[this]()
 					{
-						return;
-					}
-					QWidget* w = widget(index);
-					removeTab(index);
-					delete w;
-					emit documentCountChanged(count());
-				});
+						addNewDocument();
+					});
+			connect(this, &QTabWidget::tabCloseRequested, this,
+					[this](int index)
+					{
+						if (index < 0 || index >= count())
+						{
+							return;
+						}
+						QWidget* w = widget(index);
+						removeTab(index);
+						delete w;
+						emit documentCountChanged(count());
+					});
+		}
+		else if (QTabBar* bar = tabBar())
+		{
+			bar->hide();
+			setTabsClosable(false);
+			setMovable(false);
+		}
 	}
 
 	void DocumentStack::setDocumentFactory(DocumentFactory factory)
@@ -74,6 +85,21 @@ namespace volition
 		if (!m_factory)
 		{
 			return nullptr;
+		}
+		if (!multiDocumentUiEnabled() && count() > 0)
+		{
+			auto* existing = dynamic_cast<DocumentView*>(currentWidget());
+			if (existing && !title.isEmpty())
+			{
+				existing->setDocumentTitle(title);
+				const int index = indexOf(existing);
+				if (index >= 0)
+				{
+					setTabText(index, title);
+				}
+				emit currentDocumentTitleChanged(title);
+			}
+			return existing;
 		}
 		DocumentView* view = m_factory(this);
 		if (!view)
@@ -99,7 +125,11 @@ namespace volition
 			return nullptr;
 		}
 		DocumentView* target = dynamic_cast<DocumentView*>(currentWidget());
-		if (!target || !target->isBlank())
+		if (!target)
+		{
+			target = addNewDocument(QFileInfo(path).fileName());
+		}
+		else if (multiDocumentUiEnabled() && !target->isBlank())
 		{
 			target = addNewDocument(QFileInfo(path).fileName());
 		}
@@ -120,6 +150,7 @@ namespace volition
 			setTabText(index, name);
 			setCurrentIndex(index);
 		}
+		emit currentDocumentTitleChanged(name);
 		return target;
 	}
 

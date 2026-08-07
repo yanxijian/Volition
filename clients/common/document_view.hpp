@@ -6,7 +6,8 @@
 
 namespace volition
 {
-	/// One center-tab document surface (local to Client; not a Host Tab).
+	/// One document surface in the Client center pane.
+	/// Intra-document sheets (workbook tabs, etc.) live inside a subclass.
 	class DocumentView : public QWidget
 	{
 	public:

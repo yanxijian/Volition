@@ -34,6 +34,14 @@ namespace volition
 								 onRequestTheme(scheme);
 							 }
 						 });
+		QObject::connect(m_window.get(), &WorkspaceWindow::documentTitleChanged, m_window.get(),
+						 [this](const QString& title)
+						 {
+							 if (onRequestTabTitle && !title.isEmpty())
+							 {
+								 onRequestTabTitle(title);
+							 }
+						 });
 	}
 
 	WorkspaceContentView::~WorkspaceContentView() = default;

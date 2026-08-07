@@ -1,4 +1,4 @@
-﻿// Out-of-process pdfium renderer — must NOT load MPS/protobuf (abseil clash).
+﻿// Standalone pdfium renderer process (no MPS / protobuf linkage).
 // Usage:
 //   volition_pdf_render --file doc.pdf --info
 //   volition_pdf_render --file doc.pdf --page 0 --zoom 1.25 --out page.bmp

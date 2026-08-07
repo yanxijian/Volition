@@ -131,7 +131,7 @@ Host **只启动 exe**（MPS `QProcess`）；**不**在 Host 内加载 Client DL
 | 三栏装配 | `WorkspaceLayout` | 左 / 中 / 右 |
 | 左栏 | `NavigationPane` | 占位 |
 | 右栏 | `UtilityPane` | 占位 |
-| 中栏容器 | `DocumentStack` | 中栏多 Tab（本地，不映射新 Host Tab） |
+| 中栏容器 | `DocumentStack` | 中栏文档面（Client 本地） |
 | 中栏一页 | `DocumentView` | 基类 |
 | 文本 | `TextDocumentView` | `QPlainTextEdit` + 高亮 |
 | Markdown | `MarkdownDocumentView` | 编辑 + 档 A 预览 |
@@ -144,7 +144,7 @@ Host **只启动 exe**（MPS `QProcess`）；**不**在 Host 内加载 Client DL
 
 ## 5. UI 结构与双层 Tab
 
-与 MPS Demo 同构：**Host 顶栏 Tab = 一次嵌入的 ContentView（工作区）**；**中栏 Tab = Client 本地文档视图**。
+与 MPS Demo 同构：**Host 顶栏 Tab = 一次嵌入的 ContentView（工作区）**；中栏为 Client 本地文档视图（一窗一文）。
 
 ```text
 ┌─ ShellWindow（volition_host / MPS）─────────────────────────┐
@@ -231,7 +231,7 @@ volition_host
   → 扩展名 → clientKind（text | markdown | pdf）
   → Host 确保对应 ClientSession（薄 exe）
   → CreateSubWindow（若需新工作区）
-  → DLL 内 DocumentStack 增加 DocumentView 并加载
+  → DLL 内 DocumentStack 打开 DocumentView 并加载
 ```
 
 ---

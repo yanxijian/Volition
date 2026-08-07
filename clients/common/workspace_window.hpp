@@ -44,6 +44,8 @@ namespace volition
 	signals:
 		void requestNewContentView();
 		void requestThemeScheme(mps::theme::Scheme scheme);
+		/// Host tab label for the current document (typically the filename).
+		void documentTitleChanged(const QString& title);
 
 	protected:
 		bool nativeEvent(const QByteArray& eventType, void* message, qintptr* result) override;

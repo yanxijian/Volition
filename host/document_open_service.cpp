@@ -29,6 +29,7 @@ namespace volition::host
 		{
 			return;
 		}
+		m_app->setTabTitle(tabId, QFileInfo(path).fileName());
 		m_app->invokeOnTab(tabId, QStringLiteral("volition.open_document"), path.toUtf8());
 	}
 

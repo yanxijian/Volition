@@ -90,7 +90,7 @@ endif()
 
 if(NOT _volition_have_pdfium)
   option(VOLITION_REQUIRE_PDFIUM
-    "Fail configure when pdfium is missing (P0 placeholder pdf Client does not link it)" OFF)
+    "Fail configure when pdfium is missing" OFF)
   if(VOLITION_REQUIRE_PDFIUM)
     message(FATAL_ERROR
       "pdfium not found (VOLITION_REQUIRE_PDFIUM=ON).\n"
@@ -99,7 +99,7 @@ if(NOT _volition_have_pdfium)
       "  Or: find_package / -DVOLITION_DEV_EMBED_PDFIUM=ON (needs vcpkg + Clang-cl)")
   else()
     message(STATUS
-      "Volition: pdfium not found — skipping (P0 pdf Client is placeholder; set VOLITION_REQUIRE_PDFIUM=ON to enforce)")
+      "Volition: pdfium not found — skipping (set VOLITION_REQUIRE_PDFIUM=ON to enforce)")
     set(VOLITION_PDFIUM_TARGET "")
   endif()
 elseif(TARGET pdfium::pdfium)
