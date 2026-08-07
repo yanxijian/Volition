@@ -1,5 +1,6 @@
-# Copy pdfium_all staged bin/ beside a target, skipping DLLs that clash with
-# FetchContent protobuf (notably abseil_dll.dll — different ABI).
+# Copy pdfium_all staged bin/ beside a target.
+# Skip DLLs owned by MPS/Qt or excluded from the product in-process path
+# (notably abseil_dll — supplied by AbseilPin / volition_copy_runtime_deps).
 
 function(volition_copy_pdfium_runtime target_name)
   if(NOT VOLITION_PDFIUM_VIA_PREFIX)
@@ -12,8 +13,6 @@ function(volition_copy_pdfium_runtime target_name)
     return()
   endif()
 
-  # Skip names that collide with MPS protobuf / Qt / MSVC runtimes / V8.
-  # Abseil must come from AbseilPin (volition_copy_runtime_deps), not pdfium's copy.
   set(_skip
     abseil_dll.dll
     abseil_dll.pdb
@@ -41,7 +40,6 @@ function(volition_copy_pdfium_runtime target_name)
     if(_idx GREATER_EQUAL 0)
       continue()
     endif()
-    # Skip pdb/exp/lib noise except keep dll/exe/dat
     get_filename_component(_ext "${_src}" EXT)
     string(TOLOWER "${_ext}" _ext_l)
     if(_ext_l STREQUAL ".pdb" OR _ext_l STREQUAL ".exp" OR _ext_l STREQUAL ".lib" OR _ext_l STREQUAL ".gitkeep")
@@ -57,7 +55,7 @@ function(volition_copy_pdfium_runtime target_name)
   if(_copy_cmds)
     add_custom_command(TARGET ${target_name} POST_BUILD
       ${_copy_cmds}
-      COMMENT "Copy pdfium runtime (skip protobuf abseil clash) beside ${target_name}"
+      COMMENT "Copy pdfium runtime beside ${target_name}"
       VERBATIM
     )
   endif()

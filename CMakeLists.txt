@@ -44,8 +44,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Do NOT set global CMAKE_RUNTIME_OUTPUT_DIRECTORY here: FetchContent protobuf /
-# abseil would land in bin/ and get overwritten by pdfium's abseil_dll.dll.
+# Do NOT set global CMAKE_RUNTIME_OUTPUT_DIRECTORY: FetchContent protobuf /
+# abseil would land in bin/ and collide with staged pdfium runtimes.
 # Volition targets set RUNTIME_OUTPUT_DIRECTORY individually; runtime DLLs are
 # copied via volition_copy_runtime_deps / volition_copy_pdfium_runtime.
 

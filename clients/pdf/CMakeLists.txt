@@ -32,8 +32,7 @@ set_target_properties(volition_pdf PROPERTIES
 
 volition_copy_runtime_deps(volition_pdf_lib)
 
-# Pin abseil may not appear in MPS_PROTOBUF_RUNTIME_TARGETS when absl is IMPORTED
-# only as absl::abseil_dll after package find — copy explicitly beside the PDF Client.
+# Ensure pin abseil sits beside the Client when using AbseilPin (shared with MPS).
 if(WIN32 AND MPS_ABSEIL_PIN_PREFIX AND NOT MPS_ABSEIL_PIN_PREFIX STREQUAL "")
   set(_volition_pin_absl "${MPS_ABSEIL_PIN_PREFIX}/bin/abseil_dll.dll")
   if(EXISTS "${_volition_pin_absl}")
@@ -55,8 +54,7 @@ if(VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TARGET STREQUAL "")
     target_link_libraries(volition_pdf_lib PRIVATE ${VOLITION_PDFIUM_TARGET})
   endif()
   volition_copy_pdfium_runtime(volition_pdf_lib)
-  # Drop V8/third-party abseil leftovers if an old stage polluted the tree.
-  # Keep pdfium.dll; abseil comes from MPS/AbseilPin via volition_copy_runtime_deps.
+  # Exclude V8 / alternate-abseil runtimes from the product bin/ layout.
   add_custom_command(TARGET volition_pdf_lib POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rm -f
             "$<TARGET_FILE_DIR:volition_pdf_lib>/v8.dll"
@@ -66,7 +64,7 @@ if(VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TARGET STREQUAL "")
             "$<TARGET_FILE_DIR:volition_pdf_lib>/third_party_abseil-cpp_absl.dll"
             "$<TARGET_FILE_DIR:volition_pdf_lib>/simple_no_v8.exe"
             "$<TARGET_FILE_DIR:volition_pdf_lib>/simple_with_v8.exe"
-    COMMENT "Scrub V8 / foreign-abseil leftovers from bin/"
+    COMMENT "Exclude non-product pdfium runtimes from bin/"
     VERBATIM
   )
   message(STATUS "Volition: pdfium linked in-process into volition_pdf")
@@ -95,9 +93,9 @@ if(VOLITION_PDF_OOP_RENDER AND VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TA
       COMMAND ${CMAKE_COMMAND} -E copy_directory
               "${VOLITION_PDFIUM_PREFIX}/bin"
               "${_volition_pdf_render_outdir}"
-      COMMENT "Copy pdfium runtime into bin/render (OOP debug)"
+      COMMENT "Copy pdfium runtime into bin/render"
       VERBATIM
     )
   endif()
-  message(STATUS "Volition: VOLITION_PDF_OOP_RENDER=ON (use env VOLITION_PDF_OOP=1)")
+  message(STATUS "Volition: VOLITION_PDF_OOP_RENDER=ON (runtime VOLITION_PDF_OOP=1)")
 endif()

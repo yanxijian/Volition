@@ -22,4 +22,4 @@ python scripts\format_source.py
 python scripts\format_source.py --check
 ```
 
-产物：请运行 **`build/bin/volition_host.exe`**（不要跑 `build/host/` 下可能残留的旧 exe）。同目录含 Qt / MPS / QTE / QFR DLL。
+产物：运行 **`build/bin/volition_host.exe`**（同目录含 Qt / MPS / QTE / QFR 等运行时）。

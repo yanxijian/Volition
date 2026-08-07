@@ -12,16 +12,18 @@ Volition and its dependencies (MPS, QTE, QFR, AbseilPin, pdfium product path) sh
 | pdfium | **`PDFIUM_ENABLE_V8=OFF`** in-process; Acrobat JS stays OOP |
 | Extra global flags | Do not add shell-foreign flags (e.g. `/FIwindows.h`) by default; prefer source fixes |
 
-> Shell and pdfium share **C++20** so the fork does not have to down-level Chromium-style sources to 17.
+> Shell and pdfium share **C++20**.
 
 ## Sibling layout (Codes workspace)
 
 | Role | Local build dir | Published artifacts |
 |------|-----------------|---------------------|
-| Volition (app) | `<repo>/build` → run from `build/bin/` | No install; consumes sibling stages |
-| MPS / QTE / QFR (installable libs) | `<repo>/build-shared` | Optional install to `D:/Codes/prefix`; Volition **embeds** by default |
+| Volition (app) | `<repo>/build` → `build/bin/` | No install; consumes sibling stages |
+| MPS / QTE / QFR | `<repo>/build-shared` | Optional `D:/Codes/prefix`; Volition may embed siblings |
 | AbseilPin | `build/<pin>` | **`prefix/<pin>/`** |
 | pdfium_all | `pdfium/out/cmake-msvc` (or `cmake-v8`) | **`output/{include,lib,bin}`** |
-| Tool caches (not products) | — | `pdfium_all/.tools/`, `D:/Codes/vcpkg`, local Qt |
+| Tool caches | — | `pdfium_all/.tools/`, `D:/Codes/vcpkg`, local Qt |
+
+Names differ on purpose: Abseil pins coexist by version; pdfium `out/` follows GN; `output/` is a stage prefix. Apps use `build`; installable libs use `build-shared`.
 
 Canonical Chinese: [../zh/toolchain.md](../zh/toolchain.md)

@@ -39,7 +39,7 @@ namespace
 		}
 		const QString parentDir = QFileInfo(QDir(exeDir).absoluteFilePath(QStringLiteral(".."))).absoluteFilePath();
 #ifdef Q_OS_WIN
-		// exe dir first, then parent (shared layout fallback).
+		// Prefer the exe directory, then its parent, for shared runtimes.
 		const QByteArray oldPath = qgetenv("PATH");
 		const QByteArray prefix =
 			(QDir::toNativeSeparators(exeDir) + QLatin1Char(';') + QDir::toNativeSeparators(parentDir) + QLatin1Char(';')).toLocal8Bit();
@@ -49,7 +49,7 @@ namespace
 #endif
 	}
 
-	/// Prefer plugins next to this exe; also search parent (legacy nested layouts).
+	/// QT_PLUGIN_PATH roots must contain platforms/, styles/, etc.
 	void prependQtPluginSearchRoots(const QString& exeDir)
 	{
 		if (exeDir.isEmpty())
@@ -57,10 +57,9 @@ namespace
 			return;
 		}
 		const QString parentDir = QFileInfo(QDir(exeDir).absoluteFilePath(QStringLiteral(".."))).absoluteFilePath();
-		// QT_PLUGIN_PATH entries are roots that contain platforms/, styles/, etc.
 		const QByteArray old = qgetenv("QT_PLUGIN_PATH");
 		const QByteArray prefix =
-			(QDir::toNativeSeparators(parentDir) + QLatin1Char(';') + QDir::toNativeSeparators(exeDir) + QLatin1Char(';')).toLocal8Bit();
+			(QDir::toNativeSeparators(exeDir) + QLatin1Char(';') + QDir::toNativeSeparators(parentDir) + QLatin1Char(';')).toLocal8Bit();
 		qputenv("QT_PLUGIN_PATH", prefix + old);
 	}
 } // namespace
