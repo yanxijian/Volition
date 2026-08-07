@@ -57,6 +57,7 @@ docs/zh|en/
 | 主题 | 中文（主） | English |
 |------|------------|---------|
 | 产品方案 | [product-plan.md](docs/zh/product-plan.md) | — |
+| Abseil / PDF 同进程路线 | [abseil-pin.md](docs/zh/abseil-pin.md) | — |
 | English overview | — | [README.md](docs/en/README.md) |
 
 ## License
