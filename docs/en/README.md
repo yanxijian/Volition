@@ -1,5 +1,6 @@
 # Volition
 
+[![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../LICENSE)
 
 Multi-format document **reader / editor** on [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell) (MPS). Clients: `text` / `markdown` / `pdf`. Each Client = **thin exe + business DLL** (form A: Host only launches the exe).
