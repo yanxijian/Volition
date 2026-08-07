@@ -25,4 +25,4 @@ set_target_properties(volition_text PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-volition_copy_runtime_deps(volition_text_lib)
+# Shared MPS/QTE/QFR/protobuf runtimes are staged once beside volition_host (same bin/).

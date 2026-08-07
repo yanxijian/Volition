@@ -46,6 +46,11 @@ jobs:
         with:
           repository: yanxijian/QFluentRibbon
           path: QFluentRibbon
+      - name: Checkout AbseilPin
+        uses: actions/checkout@v7
+        with:
+          repository: yanxijian/AbseilPin
+          path: AbseilPin
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -62,11 +67,23 @@ jobs:
           version: "6.8.3"
           cache: true
           arch: win64_msvc2022_64
+      - name: Cache AbseilPin prefix
+        uses: actions/cache@v6
+        id: abseil-pin
+        with:
+          path: AbseilPin/prefix/20260107.1
+          key: abseil-pin-20260107.1-win-${{ hashFiles('AbseilPin/CMakeLists.txt', 'AbseilPin/scripts/build_pin.ps1', 'AbseilPin/pins/20260107.1/**') }}
+      - name: Build AbseilPin 20260107.1
+        if: steps.abseil-pin.outputs.cache-hit != 'true'
+        working-directory: AbseilPin
+        shell: pwsh
+        run: |
+          ./scripts/build_pin.ps1 -Pin 20260107.1
       - name: Cache FetchContent deps
         uses: actions/cache@v6
         with:
           path: Volition/build/_deps
-          key: volition-deps-win-${{ hashFiles('Volition/CMakeLists.txt', 'Volition/cmake/**', 'MultiProcessShell/CMakeLists.txt', 'MultiProcessShell/cmake/**', 'MultiProcessShell/src/common/CMakeLists.txt') }}
+          key: volition-deps-win-pin-${{ hashFiles('Volition/CMakeLists.txt', 'Volition/cmake/**', 'MultiProcessShell/CMakeLists.txt', 'MultiProcessShell/cmake/**', 'MultiProcessShell/src/common/CMakeLists.txt') }}
       - name: Configure
         working-directory: Volition
         shell: cmd
@@ -80,6 +97,8 @@ jobs:
             -DVOLITION_DEV_EMBED_MPS=ON ^
             -DVOLITION_DEV_EMBED_QTE=ON ^
             -DVOLITION_DEV_EMBED_QFR=ON ^
+            -DMPS_ABSEIL_PIN_PREFIX=%GITHUB_WORKSPACE%/AbseilPin/prefix/20260107.1 ^
+            -DVOLITION_PDF_OOP_RENDER=OFF ^
             -DVOLITION_REQUIRE_PDFIUM=OFF ^
             -DFETCHCONTENT_UPDATES_DISCONNECTED=ON
       - name: Build
@@ -88,3 +107,10 @@ jobs:
         env:
           QTDIR: ${{ env.QT_ROOT_DIR }}
         run: cmake --build build --config Release
+      - name: Smoke bin layout (AbseilPin)
+        working-directory: Volition
+        shell: pwsh
+        run: |
+          ./scripts/smoke_bin_layout.ps1 `
+            -BinDir ./build/bin `
+            -AbseilPinPrefix "$env:GITHUB_WORKSPACE/AbseilPin/prefix/20260107.1"

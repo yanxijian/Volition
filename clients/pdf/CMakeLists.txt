@@ -30,21 +30,8 @@ set_target_properties(volition_pdf PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${_volition_pdf_outdir}"
 )
 
-volition_copy_runtime_deps(volition_pdf_lib)
-
-# Ensure pin abseil sits beside the Client when using AbseilPin (shared with MPS).
-if(WIN32 AND MPS_ABSEIL_PIN_PREFIX AND NOT MPS_ABSEIL_PIN_PREFIX STREQUAL "")
-  set(_volition_pin_absl "${MPS_ABSEIL_PIN_PREFIX}/bin/abseil_dll.dll")
-  if(EXISTS "${_volition_pin_absl}")
-    add_custom_command(TARGET volition_pdf_lib POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_if_different
-              "${_volition_pin_absl}"
-              "$<TARGET_FILE_DIR:volition_pdf_lib>/abseil_dll.dll"
-      COMMENT "Copy AbseilPin abseil_dll beside volition_pdf"
-      VERBATIM
-    )
-  endif()
-endif()
+# Shared MPS/QTE/QFR/protobuf runtimes: staged once beside volition_host (same bin/).
+# Pin abseil is copied with the Host; pdfium product runtimes stay on this target.
 
 if(VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TARGET STREQUAL "")
   if(TARGET volition_pdfium)

@@ -12,3 +12,9 @@ MPS: FetchContent **protobuf v35.1**; preferred
 (auto-detected when the sibling prefix exists).
 
 Constraint: a single pin `abseil_dll.dll` under `build/bin/`; open/zoom PDF in-process by default.
+
+Local check:
+
+```text
+powershell -File scripts\smoke_bin_layout.ps1 -BinDir build\bin -RequirePdfium
+```

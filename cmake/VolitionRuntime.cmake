@@ -1,4 +1,4 @@
-# Copy shared runtime DLLs beside a Volition executable/DLL after link.
+# Copy shared runtime DLLs beside Host (Clients share the same bin/ directory).
 
 function(volition_copy_runtime_deps target_name)
   if(NOT TARGET ${target_name})

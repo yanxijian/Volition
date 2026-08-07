@@ -27,3 +27,17 @@ if(WIN32)
 endif()
 
 volition_copy_runtime_deps(volition_host)
+
+# Ensure AbseilPin abseil is beside Host when using the pin (same bin/ as Clients).
+if(WIN32 AND MPS_ABSEIL_PIN_PREFIX AND NOT MPS_ABSEIL_PIN_PREFIX STREQUAL "")
+  set(_volition_pin_absl "${MPS_ABSEIL_PIN_PREFIX}/bin/abseil_dll.dll")
+  if(EXISTS "${_volition_pin_absl}")
+    add_custom_command(TARGET volition_host POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              "${_volition_pin_absl}"
+              "$<TARGET_FILE_DIR:volition_host>/abseil_dll.dll"
+      COMMENT "Copy AbseilPin abseil_dll beside volition_host"
+      VERBATIM
+    )
+  endif()
+endif()

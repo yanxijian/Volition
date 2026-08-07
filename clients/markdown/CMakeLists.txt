@@ -41,4 +41,4 @@ set_target_properties(volition_markdown PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
 
-volition_copy_runtime_deps(volition_markdown_lib)
+# Shared runtimes: see volition_host (volition_copy_runtime_deps).

@@ -12,3 +12,9 @@ MPS：FetchContent **protobuf v35.1**；推荐
 （旁路存在时 CMake 自动探测）。
 
 约束：`build/bin/` 仅一份 pin 的 `abseil_dll.dll`；默认同进程打开/缩放 PDF。
+
+本地验收：
+
+```text
+powershell -File scripts\smoke_bin_layout.ps1 -BinDir build\bin -RequirePdfium
+```
