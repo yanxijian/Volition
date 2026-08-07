@@ -1,4 +1,5 @@
-﻿#include "document_open_service.hpp"
+﻿#include "client_kind.hpp"
+#include "document_open_service.hpp"
 #include "home_content.hpp"
 #include "shell_app.hpp"
 #include "theme_service.hpp"
@@ -50,6 +51,11 @@ int main(int argc, char* argv[])
 	shellApp.registerClientLauncher(QStringLiteral("pdf"), pdfExe);
 	shellApp.setShellWindowTitle(QStringLiteral("Volition"));
 	shellApp.setRequestNewContentViewMethod(QStringLiteral("volition.request_new_window"));
+	shellApp.setTabTitleFactory(
+		[](const QString& appName, int contentIndex)
+		{
+			return volition::host::defaultTabTitle(appName, contentIndex);
+		});
 
 	volition::host::DocumentOpenService openService(&shellApp);
 	shellApp.setHomeContentFactory(

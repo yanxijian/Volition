@@ -31,6 +31,34 @@ namespace volition::host
 		return QStringLiteral("Documents (*.txt *.xml *.md *.markdown *.pdf);;Text (*.txt *.xml *.json *.ini *.log *.csv);;"
 							  "Markdown (*.md *.markdown);;PDF (*.pdf);;All files (*.*)");
 	}
+
+	/// Host tab kind label for a registered clientKind (`text` / `markdown` / `pdf`).
+	[[nodiscard]] inline QString tabKindLabel(const QString& appName)
+	{
+		if (appName.compare(QLatin1String("text"), Qt::CaseInsensitive) == 0)
+		{
+			return QStringLiteral("Text");
+		}
+		if (appName.compare(QLatin1String("markdown"), Qt::CaseInsensitive) == 0)
+		{
+			return QStringLiteral("MD");
+		}
+		if (appName.compare(QLatin1String("pdf"), Qt::CaseInsensitive) == 0)
+		{
+			return QStringLiteral("PDF");
+		}
+		if (appName.isEmpty())
+		{
+			return QStringLiteral("Doc");
+		}
+		return appName.left(1).toUpper() + appName.mid(1);
+	}
+
+	/// Default Host tab title before a path is opened: `{Text|MD|PDF}-File{n}`.
+	[[nodiscard]] inline QString defaultTabTitle(const QString& appName, int contentIndex)
+	{
+		return QStringLiteral("%1-File%2").arg(tabKindLabel(appName)).arg(contentIndex);
+	}
 } // namespace volition::host
 
 #endif // __VOLITION_HOST_CLIENT_KIND_H__
