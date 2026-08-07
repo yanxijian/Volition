@@ -20,6 +20,8 @@ option(VOLITION_DEV_EMBED_QTE "Embed sibling QThemeEngine via add_subdirectory" 
 option(VOLITION_DEV_EMBED_QFR "Embed sibling QFluentRibbon via add_subdirectory" ON)
 option(VOLITION_DEV_EMBED_PDFIUM
   "Embed pdfium sources via add_subdirectory (VolitionToolchain: MSVC cl + C++20 + V8 OFF; prefer staged output)" OFF)
+option(VOLITION_PDF_OOP_RENDER
+  "Build volition_pdf_render.exe and allow env VOLITION_PDF_OOP=1 fallback" OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -62,10 +64,8 @@ add_subdirectory(clients/markdown)
 add_subdirectory(clients/pdf)
 
 # Stage thin exes + business DLLs beside host (runtime DLLs also copied on each link via volition_copy_runtime_deps).
-# pdf Client under bin/pdf/; pdfium helper under bin/pdf/render/ (separate abseil).
 set(_volition_stage_cmds
   COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>
-  COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>/pdf
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           $<TARGET_FILE:volition_text>
           $<TARGET_FILE:volition_text_lib>
@@ -77,7 +77,7 @@ set(_volition_stage_cmds
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           $<TARGET_FILE:volition_pdf>
           $<TARGET_FILE:volition_pdf_lib>
-          $<TARGET_FILE_DIR:volition_host>/pdf
+          $<TARGET_FILE_DIR:volition_host>
 )
 set(_volition_stage_deps
   volition_host
@@ -85,19 +85,19 @@ set(_volition_stage_deps
   volition_markdown volition_markdown_lib
   volition_pdf volition_pdf_lib
 )
-if(TARGET volition_pdf_render)
+if(VOLITION_PDF_OOP_RENDER AND TARGET volition_pdf_render)
   list(APPEND _volition_stage_cmds
-    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>/pdf/render
+    COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>/render
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:volition_pdf_render>
-            $<TARGET_FILE_DIR:volition_host>/pdf/render
+            $<TARGET_FILE_DIR:volition_host>/render
   )
   list(APPEND _volition_stage_deps volition_pdf_render)
 endif()
 
 add_custom_target(volition_stage_clients ALL
   ${_volition_stage_cmds}
-  COMMENT "Copy Client thin exes + DLLs beside volition_host (pdf under pdf/)"
+  COMMENT "Copy Client thin exes + DLLs beside volition_host"
   DEPENDS ${_volition_stage_deps}
   VERBATIM
 )

@@ -36,7 +36,7 @@ Phase-1 platform: **Windows (MPS form A)**.
 | Open file (ext→kind → Invoke) | Working |
 | text R/W + XML highlight | Working |
 | markdown tier A (md4c → QTextBrowser) | Working |
-| pdf viewer (pdfium under `bin/pdf/`) | Working (needs sibling pdfium_all) |
+| pdf viewer (in-process pdfium) | Working (needs sibling pdfium_all) |
 | CI (format + Windows Qt) | [Actions](https://github.com/yanxijian/Volition/actions/workflows/ci.yml) |
 
 ## Layout

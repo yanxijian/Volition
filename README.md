@@ -36,7 +36,7 @@
 | Open 文件（后缀→kind → Invoke 打开） | 可用 |
 | text 读写 + XML 高亮 | 可用 |
 | markdown 档 A（md4c → QTextBrowser） | 可用 |
-| pdf 阅读（pdfium，进程目录 `bin/pdf/`） | 可用（需旁路 pdfium_all） |
+| pdf 阅读（同进程 pdfium） | 可用（需旁路 pdfium_all） |
 | CI（format + Windows Qt） | [Actions](https://github.com/yanxijian/Volition/actions/workflows/ci.yml) |
 
 ## 仓库布局

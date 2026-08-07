@@ -6,12 +6,11 @@
 #include <QLabel>
 #include <QScrollArea>
 #include <QStringList>
-#include <QTemporaryDir>
 #include <QToolBar>
 
 namespace volition
 {
-	/// PDF viewer that shells out to volition_pdf_render (isolated pdfium / abseil).
+	/// In-process PDF viewer (pdfium linked into volition_pdf.dll; shared AbseilPin).
 	class PdfDocumentView final : public DocumentView
 	{
 		Q_OBJECT
@@ -29,9 +28,6 @@ namespace volition
 		void zoomOut();
 
 	private:
-		[[nodiscard]] QString renderExePath() const;
-		/// Run render helper; returns stdout on success, empty on failure (updates m_status).
-		QByteArray runRenderHelper(const QStringList& args, int timeoutMs, const QString& failStatus);
 		bool queryPageCount();
 		void closeDocument();
 		void renderCurrentPage();
@@ -40,10 +36,15 @@ namespace volition
 		QLabel* m_pageLabel = nullptr;
 		QLabel* m_status = nullptr;
 		QScrollArea* m_scroll = nullptr;
-		QTemporaryDir m_renderTempDir;
+		void* m_doc = nullptr; // FPDF_DOCUMENT
 		int m_pageCount = 0;
 		int m_pageIndex = 0;
 		double m_zoom = 1.25;
+
+#if defined(VOLITION_PDF_OOP_RENDER)
+		[[nodiscard]] QString renderExePath() const;
+		QByteArray runRenderHelper(const QStringList& args, int timeoutMs, const QString& failStatus);
+#endif
 	};
 } // namespace volition
 

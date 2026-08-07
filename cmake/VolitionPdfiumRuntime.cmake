@@ -12,7 +12,8 @@ function(volition_copy_pdfium_runtime target_name)
     return()
   endif()
 
-  # Skip names that collide with MPS protobuf / Qt / MSVC runtimes.
+  # Skip names that collide with MPS protobuf / Qt / MSVC runtimes / V8.
+  # Abseil must come from AbseilPin (volition_copy_runtime_deps), not pdfium's copy.
   set(_skip
     abseil_dll.dll
     abseil_dll.pdb
@@ -23,6 +24,13 @@ function(volition_copy_pdfium_runtime target_name)
     Qt6Gui.dll
     Qt6Widgets.dll
     Qt6Network.dll
+    v8.dll
+    v8_libbase.dll
+    v8_libplatform.dll
+    libc++.dll
+    third_party_abseil-cpp_absl.dll
+    simple_no_v8.exe
+    simple_with_v8.exe
   )
 
   set(_copy_cmds "")

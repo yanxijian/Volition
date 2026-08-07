@@ -14,4 +14,14 @@ Volition and its dependencies (MPS, QTE, QFR, AbseilPin, pdfium product path) sh
 
 > Shell and pdfium share **C++20** so the fork does not have to down-level Chromium-style sources to 17.
 
+## Sibling layout (Codes workspace)
+
+| Role | Local build dir | Published artifacts |
+|------|-----------------|---------------------|
+| Volition (app) | `<repo>/build` → run from `build/bin/` | No install; consumes sibling stages |
+| MPS / QTE / QFR (installable libs) | `<repo>/build-shared` | Optional install to `D:/Codes/prefix`; Volition **embeds** by default |
+| AbseilPin | `build/<pin>` | **`prefix/<pin>/`** |
+| pdfium_all | `pdfium/out/cmake-msvc` (or `cmake-v8`) | **`output/{include,lib,bin}`** |
+| Tool caches (not products) | — | `pdfium_all/.tools/`, `D:/Codes/vcpkg`, local Qt |
+
 Canonical Chinese: [../zh/toolchain.md](../zh/toolchain.md)

@@ -37,9 +37,9 @@ namespace
 		{
 			return;
 		}
-		const QString parentDir = QDir(exeDir).absoluteFilePath(QStringLiteral(".."));
+		const QString parentDir = QFileInfo(QDir(exeDir).absoluteFilePath(QStringLiteral(".."))).absoluteFilePath();
 #ifdef Q_OS_WIN
-		// exe dir first (pdfium private runtime under bin/pdf/), then parent bin/ (shared Qt/MPS).
+		// exe dir first, then parent (shared layout fallback).
 		const QByteArray oldPath = qgetenv("PATH");
 		const QByteArray prefix =
 			(QDir::toNativeSeparators(exeDir) + QLatin1Char(';') + QDir::toNativeSeparators(parentDir) + QLatin1Char(';')).toLocal8Bit();
@@ -47,6 +47,21 @@ namespace
 #else
 		Q_UNUSED(parentDir);
 #endif
+	}
+
+	/// Prefer plugins next to this exe; also search parent (legacy nested layouts).
+	void prependQtPluginSearchRoots(const QString& exeDir)
+	{
+		if (exeDir.isEmpty())
+		{
+			return;
+		}
+		const QString parentDir = QFileInfo(QDir(exeDir).absoluteFilePath(QStringLiteral(".."))).absoluteFilePath();
+		// QT_PLUGIN_PATH entries are roots that contain platforms/, styles/, etc.
+		const QByteArray old = qgetenv("QT_PLUGIN_PATH");
+		const QByteArray prefix =
+			(QDir::toNativeSeparators(parentDir) + QLatin1Char(';') + QDir::toNativeSeparators(exeDir) + QLatin1Char(';')).toLocal8Bit();
+		qputenv("QT_PLUGIN_PATH", prefix + old);
 	}
 } // namespace
 
@@ -58,6 +73,7 @@ int main(int argc, char* argv[])
 #endif
 	const QString exeDir = executableDirectory();
 	prependDllSearchPaths(exeDir);
+	prependQtPluginSearchRoots(exeDir);
 	if (!exeDir.isEmpty())
 	{
 		QDir::setCurrent(exeDir);

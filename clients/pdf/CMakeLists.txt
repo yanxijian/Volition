@@ -1,10 +1,8 @@
-# volition_pdf — thin exe + SHARED business DLL (MPS/Qt only).
-# pdfium runs in sibling volition_pdf_render.exe under bin/pdf/render/ (own abseil).
+# volition_pdf — thin exe + SHARED business DLL with in-process pdfium (AbseilPin).
+# Optional OOP helper: -DVOLITION_PDF_OOP_RENDER=ON (+ env VOLITION_PDF_OOP=1 at runtime).
 
-set(_volition_pdf_outdir "${CMAKE_BINARY_DIR}/bin/pdf")
-set(_volition_pdf_render_outdir "${_volition_pdf_outdir}/render")
+set(_volition_pdf_outdir "${CMAKE_BINARY_DIR}/bin")
 file(MAKE_DIRECTORY "${_volition_pdf_outdir}")
-file(MAKE_DIRECTORY "${_volition_pdf_render_outdir}")
 
 add_library(volition_pdf_lib SHARED
   plugin.cpp
@@ -34,23 +32,52 @@ set_target_properties(volition_pdf PROPERTIES
 
 volition_copy_runtime_deps(volition_pdf_lib)
 
-# Older builds copied pdfium into bin/pdf/ (abseil clash with MPS). Scrub leftovers after
-# volition_copy_runtime_deps so Client keeps protobuf abseil, not pdfium's.
-add_custom_command(TARGET volition_pdf_lib POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E rm -f
-          "$<TARGET_FILE_DIR:volition_pdf_lib>/pdfium.dll"
-          "$<TARGET_FILE_DIR:volition_pdf_lib>/v8.dll"
-          "$<TARGET_FILE_DIR:volition_pdf_lib>/v8_libbase.dll"
-          "$<TARGET_FILE_DIR:volition_pdf_lib>/v8_libplatform.dll"
-          "$<TARGET_FILE_DIR:volition_pdf_lib>/third_party_abseil-cpp_absl.dll"
-          "$<TARGET_FILE_DIR:volition_pdf_lib>/simple_no_v8.exe"
-          "$<TARGET_FILE_DIR:volition_pdf_lib>/simple_with_v8.exe"
-  COMMENT "Scrub in-process pdfium leftovers from bin/pdf"
-  VERBATIM
-)
+# Pin abseil may not appear in MPS_PROTOBUF_RUNTIME_TARGETS when absl is IMPORTED
+# only as absl::abseil_dll after package find — copy explicitly beside the PDF Client.
+if(WIN32 AND MPS_ABSEIL_PIN_PREFIX AND NOT MPS_ABSEIL_PIN_PREFIX STREQUAL "")
+  set(_volition_pin_absl "${MPS_ABSEIL_PIN_PREFIX}/bin/abseil_dll.dll")
+  if(EXISTS "${_volition_pin_absl}")
+    add_custom_command(TARGET volition_pdf_lib POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              "${_volition_pin_absl}"
+              "$<TARGET_FILE_DIR:volition_pdf_lib>/abseil_dll.dll"
+      COMMENT "Copy AbseilPin abseil_dll beside volition_pdf"
+      VERBATIM
+    )
+  endif()
+endif()
 
-# --- out-of-process pdfium helper (no MPS / no protobuf) ---
 if(VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TARGET STREQUAL "")
+  if(TARGET volition_pdfium)
+    target_link_libraries(volition_pdf_lib PRIVATE volition_pdfium)
+    target_include_directories(volition_pdf_lib PRIVATE "${VOLITION_PDFIUM_PREFIX}/include/pdfium")
+  elseif(TARGET ${VOLITION_PDFIUM_TARGET})
+    target_link_libraries(volition_pdf_lib PRIVATE ${VOLITION_PDFIUM_TARGET})
+  endif()
+  volition_copy_pdfium_runtime(volition_pdf_lib)
+  # Drop V8/third-party abseil leftovers if an old stage polluted the tree.
+  # Keep pdfium.dll; abseil comes from MPS/AbseilPin via volition_copy_runtime_deps.
+  add_custom_command(TARGET volition_pdf_lib POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rm -f
+            "$<TARGET_FILE_DIR:volition_pdf_lib>/v8.dll"
+            "$<TARGET_FILE_DIR:volition_pdf_lib>/v8_libbase.dll"
+            "$<TARGET_FILE_DIR:volition_pdf_lib>/v8_libplatform.dll"
+            "$<TARGET_FILE_DIR:volition_pdf_lib>/libc++.dll"
+            "$<TARGET_FILE_DIR:volition_pdf_lib>/third_party_abseil-cpp_absl.dll"
+            "$<TARGET_FILE_DIR:volition_pdf_lib>/simple_no_v8.exe"
+            "$<TARGET_FILE_DIR:volition_pdf_lib>/simple_with_v8.exe"
+    COMMENT "Scrub V8 / foreign-abseil leftovers from bin/"
+    VERBATIM
+  )
+  message(STATUS "Volition: pdfium linked in-process into volition_pdf")
+else()
+  message(STATUS "Volition: pdfium not found — PDF Client will fail to open documents")
+endif()
+
+if(VOLITION_PDF_OOP_RENDER AND VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TARGET STREQUAL "")
+  set(_volition_pdf_render_outdir "${_volition_pdf_outdir}/render")
+  file(MAKE_DIRECTORY "${_volition_pdf_render_outdir}")
+  target_compile_definitions(volition_pdf_lib PRIVATE VOLITION_PDF_OOP_RENDER)
   add_executable(volition_pdf_render
     volition_pdf_render.cpp
   )
@@ -68,12 +95,9 @@ if(VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TARGET STREQUAL "")
       COMMAND ${CMAKE_COMMAND} -E copy_directory
               "${VOLITION_PDFIUM_PREFIX}/bin"
               "${_volition_pdf_render_outdir}"
-      COMMENT "Copy pdfium runtime into bin/pdf/render (isolated abseil)"
+      COMMENT "Copy pdfium runtime into bin/render (OOP debug)"
       VERBATIM
     )
   endif()
-  add_dependencies(volition_pdf_lib volition_pdf_render)
-  message(STATUS "Volition: pdfium via out-of-process volition_pdf_render")
-else()
-  message(STATUS "Volition: pdfium not found — PDF open will report missing render helper")
+  message(STATUS "Volition: VOLITION_PDF_OOP_RENDER=ON (use env VOLITION_PDF_OOP=1)")
 endif()

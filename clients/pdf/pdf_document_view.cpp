@@ -1,12 +1,49 @@
 ﻿#include "pdf_document_view.hpp"
 
+#include "public/fpdfview.h"
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QImage>
 #include <QPixmap>
-#include <QProcess>
 #include <QToolButton>
 #include <QVBoxLayout>
+
+#if defined(VOLITION_PDF_OOP_RENDER)
+#include <QProcess>
+#include <QTemporaryDir>
+#endif
+
+#include <vector>
+
+namespace
+{
+	struct PdfiumLibrary
+	{
+		PdfiumLibrary()
+		{
+			FPDF_InitLibrary();
+		}
+		~PdfiumLibrary()
+		{
+			FPDF_DestroyLibrary();
+		}
+	};
+
+	void ensurePdfiumLibrary()
+	{
+		static PdfiumLibrary s_lib;
+		(void)s_lib;
+	}
+
+#if defined(VOLITION_PDF_OOP_RENDER)
+	[[nodiscard]] bool useOopRender()
+	{
+		return qEnvironmentVariable("VOLITION_PDF_OOP") == QByteArrayLiteral("1");
+	}
+#endif
+} // namespace
 
 namespace volition
 {
@@ -51,40 +88,13 @@ namespace volition
 		closeDocument();
 	}
 
-	QString PdfDocumentView::renderExePath() const
-	{
-		return QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("render/volition_pdf_render.exe"));
-	}
-
-	QByteArray PdfDocumentView::runRenderHelper(const QStringList& args, int timeoutMs, const QString& failStatus)
-	{
-		const QString exe = renderExePath();
-		if (!QFileInfo::exists(exe))
-		{
-			if (m_status)
-			{
-				m_status->setText(QStringLiteral("render helper missing"));
-			}
-			return {};
-		}
-		QProcess proc;
-		proc.setProgram(exe);
-		proc.setArguments(args);
-		proc.setWorkingDirectory(QFileInfo(exe).absolutePath());
-		proc.start();
-		if (!proc.waitForFinished(timeoutMs) || proc.exitCode() != 0)
-		{
-			if (m_status)
-			{
-				m_status->setText(failStatus);
-			}
-			return {};
-		}
-		return proc.readAllStandardOutput();
-	}
-
 	void PdfDocumentView::closeDocument()
 	{
+		if (m_doc)
+		{
+			FPDF_CloseDocument(static_cast<FPDF_DOCUMENT>(m_doc));
+			m_doc = nullptr;
+		}
 		m_pageCount = 0;
 		m_pageIndex = 0;
 		setFilePath({});
@@ -96,16 +106,27 @@ namespace volition
 
 	bool PdfDocumentView::queryPageCount()
 	{
-		const QByteArray out =
-			runRenderHelper({QStringLiteral("--file"), filePath(), QStringLiteral("--info")}, 60000, QStringLiteral("PDF info failed"))
-				.trimmed();
-		if (!out.startsWith("pages="))
+#if defined(VOLITION_PDF_OOP_RENDER)
+		if (useOopRender())
+		{
+			const QByteArray out =
+				runRenderHelper({QStringLiteral("--file"), filePath(), QStringLiteral("--info")}, 60000, QStringLiteral("PDF info failed"))
+					.trimmed();
+			if (!out.startsWith("pages="))
+			{
+				return false;
+			}
+			bool ok = false;
+			m_pageCount = out.mid(6).toInt(&ok);
+			return ok && m_pageCount > 0;
+		}
+#endif
+		if (!m_doc)
 		{
 			return false;
 		}
-		bool ok = false;
-		m_pageCount = out.mid(6).toInt(&ok);
-		return ok && m_pageCount > 0;
+		m_pageCount = FPDF_GetPageCount(static_cast<FPDF_DOCUMENT>(m_doc));
+		return m_pageCount > 0;
 	}
 
 	bool PdfDocumentView::openPath(const QString& path)
@@ -115,18 +136,38 @@ namespace volition
 		{
 			return false;
 		}
-		if (!m_renderTempDir.isValid())
+		setFilePath(path);
+
+#if defined(VOLITION_PDF_OOP_RENDER)
+		if (useOopRender())
+		{
+			if (!queryPageCount())
+			{
+				setFilePath({});
+				return false;
+			}
+			m_pageIndex = 0;
+			renderCurrentPage();
+			updateStatus();
+			return true;
+		}
+#endif
+
+		ensurePdfiumLibrary();
+		const QByteArray utf8 = path.toUtf8();
+		m_doc = FPDF_LoadDocument(utf8.constData(), nullptr); // FPDF_DOCUMENT
+		if (!m_doc)
 		{
 			if (m_status)
 			{
-				m_status->setText(QStringLiteral("temp dir failed"));
+				m_status->setText(QStringLiteral("FPDF_LoadDocument failed"));
 			}
+			setFilePath({});
 			return false;
 		}
-		setFilePath(path);
 		if (!queryPageCount())
 		{
-			setFilePath({});
+			closeDocument();
 			return false;
 		}
 		m_pageIndex = 0;
@@ -196,21 +237,110 @@ namespace volition
 		{
 			return;
 		}
-		const QString outBmp = m_renderTempDir.filePath(QStringLiteral("page_%1.bmp").arg(m_pageIndex));
-		const QByteArray result =
-			runRenderHelper({QStringLiteral("--file"), filePath(), QStringLiteral("--page"), QString::number(m_pageIndex),
-							 QStringLiteral("--zoom"), QString::number(m_zoom, 'f', 4), QStringLiteral("--out"), outBmp},
-							120000, QStringLiteral("render failed"));
-		if (result.isNull() || !QFileInfo::exists(outBmp))
+
+#if defined(VOLITION_PDF_OOP_RENDER)
+		if (useOopRender())
 		{
-			if (m_status && result.isNull() == false)
+			static QTemporaryDir s_renderTempDir;
+			if (!s_renderTempDir.isValid())
 			{
-				m_status->setText(QStringLiteral("render failed"));
+				if (m_status)
+				{
+					m_status->setText(QStringLiteral("temp dir failed"));
+				}
+				return;
+			}
+			const QString outBmp = s_renderTempDir.filePath(QStringLiteral("page_%1.bmp").arg(m_pageIndex));
+			const QByteArray result =
+				runRenderHelper({QStringLiteral("--file"), filePath(), QStringLiteral("--page"), QString::number(m_pageIndex),
+								 QStringLiteral("--zoom"), QString::number(m_zoom, 'f', 4), QStringLiteral("--out"), outBmp},
+								120000, QStringLiteral("render failed"));
+			if (result.isNull() || !QFileInfo::exists(outBmp))
+			{
+				if (m_status && result.isNull() == false)
+				{
+					m_status->setText(QStringLiteral("render failed"));
+				}
+				return;
+			}
+			QPixmap px(outBmp);
+			m_pageLabel->setPixmap(px);
+			m_pageLabel->resize(px.size());
+			return;
+		}
+#endif
+
+		if (!m_doc)
+		{
+			return;
+		}
+		FPDF_PAGE page = FPDF_LoadPage(static_cast<FPDF_DOCUMENT>(m_doc), m_pageIndex);
+		if (!page)
+		{
+			if (m_status)
+			{
+				m_status->setText(QStringLiteral("FPDF_LoadPage failed"));
 			}
 			return;
 		}
-		QPixmap px(outBmp);
+
+		const double pageW = FPDF_GetPageWidth(page);
+		const double pageH = FPDF_GetPageHeight(page);
+		const int width = pageW * m_zoom > 1.0 ? static_cast<int>(pageW * m_zoom + 0.5) : 1;
+		const int height = pageH * m_zoom > 1.0 ? static_cast<int>(pageH * m_zoom + 0.5) : 1;
+		std::vector<unsigned char> buffer(static_cast<size_t>(width) * static_cast<size_t>(height) * 4u, 255);
+		FPDF_BITMAP bitmap = FPDFBitmap_CreateEx(width, height, FPDFBitmap_BGRA, buffer.data(), width * 4);
+		if (!bitmap)
+		{
+			FPDF_ClosePage(page);
+			if (m_status)
+			{
+				m_status->setText(QStringLiteral("FPDFBitmap_CreateEx failed"));
+			}
+			return;
+		}
+		FPDF_RenderPageBitmap(bitmap, page, 0, 0, width, height, 0, FPDF_ANNOT);
+		FPDFBitmap_Destroy(bitmap);
+		FPDF_ClosePage(page);
+
+		// pdfium BGRA matches little-endian QImage::Format_ARGB32 byte order.
+		QImage img(buffer.data(), width, height, width * 4, QImage::Format_ARGB32);
+		const QPixmap px = QPixmap::fromImage(img.copy());
 		m_pageLabel->setPixmap(px);
 		m_pageLabel->resize(px.size());
 	}
+
+#if defined(VOLITION_PDF_OOP_RENDER)
+	QString PdfDocumentView::renderExePath() const
+	{
+		return QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("render/volition_pdf_render.exe"));
+	}
+
+	QByteArray PdfDocumentView::runRenderHelper(const QStringList& args, int timeoutMs, const QString& failStatus)
+	{
+		const QString exe = renderExePath();
+		if (!QFileInfo::exists(exe))
+		{
+			if (m_status)
+			{
+				m_status->setText(QStringLiteral("render helper missing"));
+			}
+			return {};
+		}
+		QProcess proc;
+		proc.setProgram(exe);
+		proc.setArguments(args);
+		proc.setWorkingDirectory(QFileInfo(exe).absolutePath());
+		proc.start();
+		if (!proc.waitForFinished(timeoutMs) || proc.exitCode() != 0)
+		{
+			if (m_status)
+			{
+				m_status->setText(failStatus);
+			}
+			return {};
+		}
+		return proc.readAllStandardOutput();
+	}
+#endif
 } // namespace volition

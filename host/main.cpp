@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
 	const QString textExe = besideHost(QStringLiteral("volition_text.exe"));
 	const QString mdExe = besideHost(QStringLiteral("volition_markdown.exe"));
-	const QString pdfExe = besideHost(QStringLiteral("pdf/volition_pdf.exe"));
+	const QString pdfExe = besideHost(QStringLiteral("volition_pdf.exe"));
 	for (const QString& exe : {textExe, mdExe, pdfExe})
 	{
 		if (!QFileInfo::exists(exe))
