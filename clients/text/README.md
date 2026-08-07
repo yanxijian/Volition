@@ -1,5 +1,18 @@
 # clients/text/
 
-**text** Client：`.txt` / `.xml`（及后续 json、ini…）；Markdown 轻量预览时作为本进程的一种 mode。
+Volition **text** Client：`volition_text.exe`（薄壳）+ `volition_text.dll`（业务）。
 
-规划编辑内核：`QPlainTextEdit` + 语法高亮；Markdown 预览见产品方案 §5（`md4c` → `QTextBrowser` 起步）。
+`clientKind` / `appName` = `text`。
+
+## 覆盖类型
+
+`.txt`、`.xml`（仅语法高亮）。**不含** `.md`（见 `clients/markdown/`）。
+
+## 产物
+
+| 目标 | 说明 |
+|------|------|
+| `volition_text` | 薄 exe：Host `QProcess` 启动；`LoadLibrary` 同目录 DLL → `VolitionClientRun` |
+| `volition_text_lib` | SHARED：`TextContentView` → `WorkspaceWindow` → `DocumentStack` → `TextDocumentView`（`QPlainTextEdit`） |
+
+导出约定见 [../common/](../common/)。产品边界见 [docs/zh/product-plan.md](../../docs/zh/product-plan.md)。

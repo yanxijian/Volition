@@ -1,5 +1,14 @@
 # clients/pdf/
 
-**pdf** Client：独立进程；PDF 渲染栈与文本编辑隔离。
+Volition **pdf** Client：`volition_pdf.exe` + `volition_pdf.dll`。
 
-首期：打开 / 翻页 / 缩放；批注与编辑能力后置。引擎选型（Qt PDF / PDFium / …）见产品方案开放问题。
+`clientKind` / `appName` = `pdf`。渲染：**pdfium_all**（优先 staged `output`）。
+
+## 产物
+
+| 目标 | 说明 |
+|------|------|
+| `volition_pdf` | 薄 exe → `LoadLibrary` → `VolitionClientRun` |
+| `volition_pdf_lib` | SHARED：`PdfContentView` → `WorkspaceWindow` → `PdfDocumentView` |
+
+导出约定见 [../common/](../common/)。产品边界见 [docs/zh/product-plan.md](../../docs/zh/product-plan.md)。

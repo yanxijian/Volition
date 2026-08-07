@@ -6,12 +6,124 @@ project(Volition
   LANGUAGES CXX
 )
 
-# Scaffold only: Host / clients not implemented yet.
-# Intended layout:
-#   host/           → volition_host (MPS Host)
-#   clients/text/   → volition_text (txt / xml / Markdown mode)
-#   clients/pdf/    → volition_pdf
-#
-# Depends on sibling MultiProcessShell (and optionally QThemeEngine / QFluentRibbon).
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-message(STATUS "Volition ${PROJECT_VERSION}: scaffold — add targets when Host/Clients land")
+if(MSVC)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+endif()
+
+option(VOLITION_BUILD_APPS "Build volition_host and Client thin exe + DLLs" ON)
+option(VOLITION_DEV_EMBED_MPS "Embed sibling MultiProcessShell via add_subdirectory" ON)
+option(VOLITION_DEV_EMBED_QTE "Embed sibling QThemeEngine via add_subdirectory" ON)
+option(VOLITION_DEV_EMBED_QFR "Embed sibling QFluentRibbon via add_subdirectory" ON)
+option(VOLITION_DEV_EMBED_PDFIUM
+  "Embed pdfium sources via add_subdirectory (needs vcpkg + Clang-cl; prefer staged output)" OFF)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+if(DEFINED ENV{QTDIR} AND NOT "$ENV{QTDIR}" STREQUAL "")
+  file(TO_CMAKE_PATH "$ENV{QTDIR}" _volition_qtdir)
+  list(PREPEND CMAKE_PREFIX_PATH "${_volition_qtdir}")
+endif()
+
+if(NOT VOLITION_BUILD_APPS)
+  message(STATUS "Volition ${PROJECT_VERSION}: VOLITION_BUILD_APPS=OFF — scaffold only")
+  return()
+endif()
+
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Network)
+if(Qt6_VERSION VERSION_LESS "6.8")
+  message(FATAL_ERROR "Qt 6.8+ required, found ${Qt6_VERSION}")
+endif()
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+# Do NOT set global CMAKE_RUNTIME_OUTPUT_DIRECTORY here: FetchContent protobuf /
+# abseil would land in bin/ and get overwritten by pdfium's abseil_dll.dll.
+# Volition targets set RUNTIME_OUTPUT_DIRECTORY individually; runtime DLLs are
+# copied via volition_copy_runtime_deps / volition_copy_pdfium_runtime.
+
+include(VolitionMultiProcessShell)
+include(VolitionQThemeEngine)
+include(VolitionQFluentRibbon)
+include(VolitionPdfium)
+include(VolitionThinClient)
+include(VolitionRuntime)
+include(VolitionPdfiumRuntime)
+
+add_subdirectory(clients/common)
+add_subdirectory(host)
+add_subdirectory(clients/text)
+add_subdirectory(clients/markdown)
+add_subdirectory(clients/pdf)
+
+# Stage thin exes + business DLLs beside host (runtime DLLs also copied on each link via volition_copy_runtime_deps).
+add_custom_target(volition_stage_clients ALL
+  COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          $<TARGET_FILE:volition_text>
+          $<TARGET_FILE:volition_text_lib>
+          $<TARGET_FILE_DIR:volition_host>
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          $<TARGET_FILE:volition_markdown>
+          $<TARGET_FILE:volition_markdown_lib>
+          $<TARGET_FILE_DIR:volition_host>
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          $<TARGET_FILE:volition_pdf>
+          $<TARGET_FILE:volition_pdf_lib>
+          $<TARGET_FILE_DIR:volition_host>
+  COMMENT "Copy Client thin exes + DLLs beside volition_host"
+  DEPENDS
+    volition_host
+    volition_text volition_text_lib
+    volition_markdown volition_markdown_lib
+    volition_pdf volition_pdf_lib
+  VERBATIM
+)
+
+# Qt runtime via windeployqt (host + Client thin exes share bin/).
+if(NOT WINDEPLOYQT_EXECUTABLE)
+  find_program(WINDEPLOYQT_EXECUTABLE
+    NAMES windeployqt windeployqt.exe
+    HINTS
+      "$ENV{QTDIR}/bin"
+      "${Qt6_DIR}/../../../bin"
+    DOC "Qt windeployqt tool"
+  )
+endif()
+
+if(WIN32 AND WINDEPLOYQT_EXECUTABLE)
+  add_custom_target(volition_deploy_qt ALL
+    COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+            "$<IF:$<CONFIG:Debug>,--debug,--release>"
+            --no-translations
+            --compiler-runtime
+            $<TARGET_FILE:volition_host>
+    COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+            "$<IF:$<CONFIG:Debug>,--debug,--release>"
+            --no-translations
+            $<TARGET_FILE:volition_text>
+    COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+            "$<IF:$<CONFIG:Debug>,--debug,--release>"
+            --no-translations
+            $<TARGET_FILE:volition_markdown>
+    COMMAND "${WINDEPLOYQT_EXECUTABLE}"
+            "$<IF:$<CONFIG:Debug>,--debug,--release>"
+            --no-translations
+            $<TARGET_FILE:volition_pdf>
+    COMMENT "windeployqt: deploy Qt runtime beside Volition binaries"
+    DEPENDS volition_stage_clients
+    VERBATIM
+  )
+elseif(WIN32)
+  message(WARNING "windeployqt not found; set QTDIR or PATH — apps need Qt DLLs beside exe or on PATH")
+endif()
+
+message(STATUS "Volition ${PROJECT_VERSION}")
+message(STATUS "  Qt: ${Qt6_VERSION}")
+message(STATUS "  embed: mps=${VOLITION_MPS_VIA_SOURCE} qte=${VOLITION_QTE_VIA_SOURCE} qfr=${VOLITION_QFR_VIA_SOURCE} pdfium_src=${VOLITION_PDFIUM_VIA_SOURCE} pdfium_prefix=${VOLITION_PDFIUM_VIA_PREFIX}")
+message(STATUS "  windeployqt: ${WINDEPLOYQT_EXECUTABLE}")

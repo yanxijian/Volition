@@ -1,0 +1,45 @@
+---
+description: C++ naming and container conventions (Qt-oriented)
+globs: "**/*.{h,hpp,hxx,hh,c,cc,cpp,cxx}"
+alwaysApply: false
+---
+
+# Naming & containers
+
+## Members
+
+- Data members use Qt-style **`m_` + camelCase**: `m_shellId`, `m_tabs`.
+- Do **not** use trailing-underscore Google style (`shellId_`).
+- Do **not** invent a second prefix (`m_foo_`).
+
+## Functions / parameters
+
+- Keep Qt API style: **lowerCamelCase** (`createShell`, `tabId`).
+
+## Storage prefixes (strict — by written `static`)
+
+Prefix follows whether the declaration **literally uses `static`**, not C++ linkage alone:
+
+| Prefix | When to use | Example |
+|--------|-------------|---------|
+| `g_` | Mutable variable **without** the `static` keyword (file scope, anonymous namespace, or true external global) | `g_nextShellId` |
+| `s_` | Mutable with **`static` inside a function** or **mutable `static` class member** | `s_once`, `s_cache` |
+| `gs_` | Mutable with **explicit file-scope `static`** | `static int gs_nextId = 1;` |
+
+- Anonymous-namespace variables **without** `static` use **`g_`** (even though they have internal linkage).
+- Do **not** stack prefixes (`gs_g_foo`, `s_kFoo`).
+
+## Constants
+
+- Any immutable / compile-time constant uses **`kCamelCase` only** (no `g`/`s`/`gs` prefix), even if it lives in an anonymous namespace: `kHomeTabId`, `kTabSpacing`.
+- Prefer `inline constexpr` over macros.
+
+## Containers
+
+- **UI / signals / slots / Host-Client orchestration APIs**: prefer Qt (`QString`, `QVector`, `QHash`, `QList`, …).
+- **Core algorithms (`tab_strip`), frame codecs, peelable modules**: prefer STL (`std::vector`, `std::string`, …).
+
+## Include guards
+
+- Keep `__{TARGET}_{FILE}_H__` (see `cpp-include-guards.mdc`).
+- Formatting stays in `.clang-format` (**`ColumnLimit: 140`**; do not change for naming).
