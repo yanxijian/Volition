@@ -113,4 +113,13 @@ namespace volition
 			m_window->ribbonBar()->polishFromStore();
 		}
 	}
+
+	bool WorkspaceContentView::openDocument(const QString& path)
+	{
+		if (!m_window || !m_window->documentStack())
+		{
+			return false;
+		}
+		return m_window->documentStack()->openDocument(path) != nullptr;
+	}
 } // namespace volition

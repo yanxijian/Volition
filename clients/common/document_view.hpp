@@ -23,9 +23,34 @@ namespace volition
 		{
 			return m_title;
 		}
+		[[nodiscard]] QString filePath() const
+		{
+			return m_filePath;
+		}
+		/// Load path into this view. Default: unsupported.
+		virtual bool openPath(const QString& /*path*/)
+		{
+			return false;
+		}
+		/// Persist current content if backed by a path. Default: no-op success.
+		virtual bool save()
+		{
+			return true;
+		}
+		[[nodiscard]] virtual bool isBlank() const
+		{
+			return m_filePath.isEmpty();
+		}
+
+	protected:
+		void setFilePath(QString path)
+		{
+			m_filePath = std::move(path);
+		}
 
 	private:
 		QString m_title;
+		QString m_filePath;
 	};
 } // namespace volition
 

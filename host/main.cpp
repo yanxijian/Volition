@@ -1,4 +1,5 @@
-﻿#include "home_content.hpp"
+﻿#include "document_open_service.hpp"
+#include "home_content.hpp"
 #include "shell_app.hpp"
 #include "theme_service.hpp"
 
@@ -34,7 +35,7 @@ int main(int argc, char* argv[])
 
 	const QString textExe = besideHost(QStringLiteral("volition_text.exe"));
 	const QString mdExe = besideHost(QStringLiteral("volition_markdown.exe"));
-	const QString pdfExe = besideHost(QStringLiteral("volition_pdf.exe"));
+	const QString pdfExe = besideHost(QStringLiteral("pdf/volition_pdf.exe"));
 	for (const QString& exe : {textExe, mdExe, pdfExe})
 	{
 		if (!QFileInfo::exists(exe))
@@ -49,10 +50,12 @@ int main(int argc, char* argv[])
 	shellApp.registerClientLauncher(QStringLiteral("pdf"), pdfExe);
 	shellApp.setShellWindowTitle(QStringLiteral("Volition"));
 	shellApp.setRequestNewContentViewMethod(QStringLiteral("volition.request_new_window"));
+
+	volition::host::DocumentOpenService openService(&shellApp);
 	shellApp.setHomeContentFactory(
-		[&shellApp](mps::host::ShellWindow* shell) -> QWidget*
+		[&shellApp, &openService](mps::host::ShellWindow* shell) -> QWidget*
 		{
-			return new volition::host::HomeContent(&shellApp, shell);
+			return new volition::host::HomeContent(&shellApp, shell, &openService);
 		});
 	QObject::connect(&shellApp, &mps::host::ShellApp::schemeChanged, &theme,
 					 [&theme](mps::theme::Scheme scheme, mps::host::ThemeOrigin origin)

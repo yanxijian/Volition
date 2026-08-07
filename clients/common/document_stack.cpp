@@ -1,6 +1,9 @@
 ﻿#include "document_stack.hpp"
 
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QLabel>
+#include <QMessageBox>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -58,6 +61,14 @@ namespace volition
 		}
 	}
 
+	void DocumentStack::setNameFilters(QString filters)
+	{
+		if (!filters.isEmpty())
+		{
+			m_nameFilters = std::move(filters);
+		}
+	}
+
 	DocumentView* DocumentStack::addNewDocument(const QString& title)
 	{
 		if (!m_factory)
@@ -79,5 +90,60 @@ namespace volition
 		setCurrentIndex(index);
 		emit documentCountChanged(count());
 		return view;
+	}
+
+	DocumentView* DocumentStack::openDocument(const QString& path)
+	{
+		if (path.isEmpty() || !m_factory)
+		{
+			return nullptr;
+		}
+		DocumentView* target = dynamic_cast<DocumentView*>(currentWidget());
+		if (!target || !target->isBlank())
+		{
+			target = addNewDocument(QFileInfo(path).fileName());
+		}
+		if (!target)
+		{
+			return nullptr;
+		}
+		if (!target->openPath(path))
+		{
+			QMessageBox::warning(this, QStringLiteral("Volition"), QStringLiteral("Failed to open:\n%1").arg(path));
+			return nullptr;
+		}
+		const QString name = QFileInfo(path).fileName();
+		target->setDocumentTitle(name);
+		const int index = indexOf(target);
+		if (index >= 0)
+		{
+			setTabText(index, name);
+			setCurrentIndex(index);
+		}
+		return target;
+	}
+
+	void DocumentStack::openDocumentWithDialog()
+	{
+		const QString path = QFileDialog::getOpenFileName(this, QStringLiteral("Open Document"), QString(), m_nameFilters);
+		if (!path.isEmpty())
+		{
+			openDocument(path);
+		}
+	}
+
+	bool DocumentStack::saveCurrentDocument()
+	{
+		auto* view = dynamic_cast<DocumentView*>(currentWidget());
+		if (!view)
+		{
+			return false;
+		}
+		if (!view->save())
+		{
+			QMessageBox::warning(this, QStringLiteral("Volition"), QStringLiteral("Failed to save document."));
+			return false;
+		}
+		return true;
 	}
 } // namespace volition

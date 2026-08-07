@@ -20,13 +20,19 @@ namespace volition
 		explicit DocumentStack(QWidget* parent = nullptr);
 
 		void setDocumentFactory(DocumentFactory factory);
+		void setNameFilters(QString filters);
 		DocumentView* addNewDocument(const QString& title = QString());
+		/// Open path: reuse blank current tab when possible, else add a tab.
+		DocumentView* openDocument(const QString& path);
+		void openDocumentWithDialog();
+		bool saveCurrentDocument();
 
 	signals:
 		void documentCountChanged(int count);
 
 	private:
 		DocumentFactory m_factory;
+		QString m_nameFilters = QStringLiteral("All files (*.*)");
 		int m_nextDocIndex = 1;
 	};
 } // namespace volition

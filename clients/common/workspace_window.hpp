@@ -23,6 +23,8 @@ namespace volition
 		WorkspaceWindow(qint64 tabId, QString title, qfluentribbon::ThemeBridge* bridge, DocumentStack::DocumentFactory documentFactory,
 						QWidget* parent = nullptr);
 
+		void setDocumentNameFilters(QString filters);
+
 		[[nodiscard]] qint64 tabId() const
 		{
 			return m_tabId;
@@ -55,6 +57,7 @@ namespace volition
 		bool m_chromeReady = false;
 		qfluentribbon::ThemeBridge* m_pendingBridge = nullptr;
 		DocumentStack::DocumentFactory m_documentFactory;
+		QString m_nameFilters;
 		WorkspaceLayout* m_layout = nullptr;
 	};
 } // namespace volition

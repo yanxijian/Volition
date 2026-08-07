@@ -4,22 +4,39 @@
 #include "document_view.hpp"
 
 #include <QLabel>
-#include <QVBoxLayout>
+#include <QScrollArea>
+#include <QToolBar>
 
 namespace volition
 {
-	/// Placeholder until pdfium_all rendering lands.
 	class PdfDocumentView final : public DocumentView
 	{
+		Q_OBJECT
 	public:
-		explicit PdfDocumentView(QWidget* parent = nullptr)
-			: DocumentView(parent)
-		{
-			auto* lay = new QVBoxLayout(this);
-			auto* label = new QLabel(QStringLiteral("PdfDocumentView — pdfium render TBD"), this);
-			label->setAlignment(Qt::AlignCenter);
-			lay->addWidget(label);
-		}
+		explicit PdfDocumentView(QWidget* parent = nullptr);
+		~PdfDocumentView() override;
+
+		bool openPath(const QString& path) override;
+		[[nodiscard]] bool isBlank() const override;
+
+	private slots:
+		void goPrevPage();
+		void goNextPage();
+		void zoomIn();
+		void zoomOut();
+
+	private:
+		void closeDocument();
+		void renderCurrentPage();
+		void updateStatus();
+
+		QLabel* m_pageLabel = nullptr;
+		QLabel* m_status = nullptr;
+		QScrollArea* m_scroll = nullptr;
+		void* m_doc = nullptr; // FPDF_DOCUMENT
+		int m_pageCount = 0;
+		int m_pageIndex = 0;
+		double m_zoom = 1.25;
 	};
 } // namespace volition
 

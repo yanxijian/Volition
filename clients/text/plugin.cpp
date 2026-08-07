@@ -14,5 +14,6 @@ namespace
 
 extern "C" VOLITION_CLIENT_EXPORT int VolitionClientRun(int argc, char** argv)
 {
-	return volition::runClientPlugin(argc, argv, QStringLiteral("text"), makeTextDocument);
+	return volition::runClientPlugin(argc, argv, QStringLiteral("text"), makeTextDocument,
+									 QStringLiteral("Text (*.txt *.xml *.json *.ini *.log *.csv);;All files (*.*)"));
 }

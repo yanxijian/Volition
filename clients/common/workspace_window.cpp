@@ -52,6 +52,15 @@ namespace volition
 		m_chromeReady = true;
 	}
 
+	void WorkspaceWindow::setDocumentNameFilters(QString filters)
+	{
+		m_nameFilters = std::move(filters);
+		if (documentStack())
+		{
+			documentStack()->setNameFilters(m_nameFilters);
+		}
+	}
+
 	bool WorkspaceWindow::nativeEvent(const QByteArray& eventType, void* message, qintptr* result)
 	{
 #ifdef Q_OS_WIN
@@ -128,6 +137,10 @@ namespace volition
 		if (m_documentFactory && m_layout->documentStack())
 		{
 			m_layout->documentStack()->setDocumentFactory(m_documentFactory);
+			if (!m_nameFilters.isEmpty())
+			{
+				m_layout->documentStack()->setNameFilters(m_nameFilters);
+			}
 			m_layout->documentStack()->addNewDocument();
 		}
 		setCentralWidget(m_layout);
@@ -143,6 +156,10 @@ namespace volition
 
 		auto* newWindow = makeAction(this, QStringLiteral("window.new"), QStringLiteral("New Window"), QStyle::SP_FileDialogNewFolder,
 									 QStringLiteral("New Host workspace tab (CreateSubWindow)."));
+		auto* openDoc = makeAction(this, QStringLiteral("document.open"), QStringLiteral("Open"), QStyle::SP_DialogOpenButton,
+								   QStringLiteral("Open a document in the center stack."));
+		auto* saveDoc = makeAction(this, QStringLiteral("document.save"), QStringLiteral("Save"), QStyle::SP_DialogSaveButton,
+								   QStringLiteral("Save current document."));
 		auto* newDoc = makeAction(this, QStringLiteral("document.new"), QStringLiteral("New Document"), QStyle::SP_FileIcon,
 								  QStringLiteral("New center-pane document tab."));
 		auto* light = makeAction(this, QStringLiteral("theme.light"), QStringLiteral("Light"), QStyle::SP_DialogApplyButton,
@@ -152,8 +169,26 @@ namespace volition
 
 		auto* windowGroup = home->addGroup(QStringLiteral("Window"));
 		(void)windowGroup->addAction(newWindow);
+		(void)windowGroup->addAction(openDoc);
+		(void)windowGroup->addAction(saveDoc);
 		(void)windowGroup->addAction(newDoc);
 		connect(newWindow, &QAction::triggered, this, &WorkspaceWindow::requestNewContentView);
+		connect(openDoc, &QAction::triggered, this,
+				[this]()
+				{
+					if (documentStack())
+					{
+						documentStack()->openDocumentWithDialog();
+					}
+				});
+		connect(saveDoc, &QAction::triggered, this,
+				[this]()
+				{
+					if (documentStack())
+					{
+						documentStack()->saveCurrentDocument();
+					}
+				});
 		connect(newDoc, &QAction::triggered, this,
 				[this]()
 				{

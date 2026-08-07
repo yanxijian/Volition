@@ -12,5 +12,6 @@ namespace
 
 extern "C" VOLITION_CLIENT_EXPORT int VolitionClientRun(int argc, char** argv)
 {
-	return volition::runClientPlugin(argc, argv, QStringLiteral("markdown"), makeMarkdownDocument);
+	return volition::runClientPlugin(argc, argv, QStringLiteral("markdown"), makeMarkdownDocument,
+									 QStringLiteral("Markdown (*.md *.markdown);;All files (*.*)"));
 }

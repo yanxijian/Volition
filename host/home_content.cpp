@@ -1,5 +1,6 @@
 ﻿#include "home_content.hpp"
 
+#include "document_open_service.hpp"
 #include "shell_app.hpp"
 #include "shell_window.hpp"
 #include "theme_origin.hpp"
@@ -11,14 +12,15 @@
 
 namespace volition::host
 {
-	HomeContent::HomeContent(mps::host::ShellApp* app, mps::host::ShellWindow* shell, QWidget* parent)
+	HomeContent::HomeContent(mps::host::ShellApp* app, mps::host::ShellWindow* shell, DocumentOpenService* openService, QWidget* parent)
 		: QWidget(parent)
 	{
 		auto* lay = new QVBoxLayout(this);
+		auto* openBtn = new QPushButton(QStringLiteral("Open file…"), this);
 		auto* textBtn = new QPushButton(QStringLiteral("Create text"), this);
 		auto* mdBtn = new QPushButton(QStringLiteral("Create markdown"), this);
 		auto* pdfBtn = new QPushButton(QStringLiteral("Create pdf"), this);
-		for (QPushButton* b : {textBtn, mdBtn, pdfBtn})
+		for (QPushButton* b : {openBtn, textBtn, mdBtn, pdfBtn})
 		{
 			b->setFixedSize(180, 40);
 		}
@@ -35,6 +37,8 @@ namespace volition::host
 		themeRow->addStretch();
 
 		lay->addStretch();
+		lay->addWidget(openBtn, 0, Qt::AlignCenter);
+		lay->addSpacing(12);
 		lay->addWidget(textBtn, 0, Qt::AlignCenter);
 		lay->addSpacing(8);
 		lay->addWidget(mdBtn, 0, Qt::AlignCenter);
@@ -44,6 +48,14 @@ namespace volition::host
 		lay->addLayout(themeRow);
 		lay->addStretch();
 
+		connect(openBtn, &QPushButton::clicked, this,
+				[openService, shell]()
+				{
+					if (openService && shell)
+					{
+						openService->openWithDialog(shell);
+					}
+				});
 		connect(textBtn, &QPushButton::clicked, this,
 				[app, shell]()
 				{

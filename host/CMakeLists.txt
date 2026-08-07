@@ -4,6 +4,9 @@ add_executable(volition_host
   main.cpp
   home_content.cpp
   home_content.hpp
+  document_open_service.cpp
+  document_open_service.hpp
+  client_kind.hpp
   theme_service.cpp
   theme_service.hpp
 )

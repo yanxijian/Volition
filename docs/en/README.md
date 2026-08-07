@@ -32,8 +32,12 @@ Phase-1 platform: **Windows (MPS form A)**.
 |------------|--------|
 | Product name **Volition** | Done |
 | Product plan (3 clients / thin exe+DLL / dual-tab) | [product-plan.md](../zh/product-plan.md) |
-| P0 CMake: host + text/markdown/pdf (exe+dll) | Skeleton |
-| ContentView / WorkspaceWindow / DocumentView | Not implemented |
+| Host + text / markdown / pdf (thin exe+DLL) | Working |
+| Open file (ext→kind → Invoke) | Working |
+| text R/W + XML highlight | Working |
+| markdown tier A (md4c → QTextBrowser) | Working |
+| pdf viewer (pdfium under `bin/pdf/`) | Working (needs sibling pdfium_all) |
+| CI (format + Windows Qt) | [Actions](https://github.com/yanxijian/Volition/actions/workflows/ci.yml) |
 
 ## Layout
 

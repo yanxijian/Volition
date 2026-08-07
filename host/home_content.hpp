@@ -11,12 +11,14 @@ namespace mps::host
 
 namespace volition::host
 {
-	/// Home client area: Create text / markdown / pdf + Light/Dark.
+	class DocumentOpenService;
+
+	/// Home client area: Open + Create text/markdown/pdf + Light/Dark.
 	class HomeContent final : public QWidget
 	{
 		Q_OBJECT
 	public:
-		HomeContent(mps::host::ShellApp* app, mps::host::ShellWindow* shell, QWidget* parent = nullptr);
+		HomeContent(mps::host::ShellApp* app, mps::host::ShellWindow* shell, DocumentOpenService* openService, QWidget* parent = nullptr);
 	};
 } // namespace volition::host
 

@@ -32,6 +32,7 @@ namespace volition
 		void realizeChrome() override;
 		void syncAfterEmbed() override;
 		void applyTheme(mps::theme::Scheme scheme) override;
+		bool openDocument(const QString& path) override;
 
 	protected:
 		void syncRibbonTokens();

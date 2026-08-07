@@ -12,5 +12,5 @@ namespace
 
 extern "C" VOLITION_CLIENT_EXPORT int VolitionClientRun(int argc, char** argv)
 {
-	return volition::runClientPlugin(argc, argv, QStringLiteral("pdf"), makePdfDocument);
+	return volition::runClientPlugin(argc, argv, QStringLiteral("pdf"), makePdfDocument, QStringLiteral("PDF (*.pdf);;All files (*.*)"));
 }

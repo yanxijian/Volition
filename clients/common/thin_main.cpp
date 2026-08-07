@@ -30,6 +30,24 @@ namespace
 		return QDir::currentPath();
 #endif
 	}
+
+	void prependDllSearchPaths(const QString& exeDir)
+	{
+		if (exeDir.isEmpty())
+		{
+			return;
+		}
+		const QString parentDir = QDir(exeDir).absoluteFilePath(QStringLiteral(".."));
+#ifdef Q_OS_WIN
+		// exe dir first (pdfium private runtime under bin/pdf/), then parent bin/ (shared Qt/MPS).
+		const QByteArray oldPath = qgetenv("PATH");
+		const QByteArray prefix =
+			(QDir::toNativeSeparators(exeDir) + QLatin1Char(';') + QDir::toNativeSeparators(parentDir) + QLatin1Char(';')).toLocal8Bit();
+		qputenv("PATH", prefix + oldPath);
+#else
+		Q_UNUSED(parentDir);
+#endif
+	}
 } // namespace
 
 int main(int argc, char* argv[])
@@ -39,11 +57,9 @@ int main(int argc, char* argv[])
 	SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 #endif
 	const QString exeDir = executableDirectory();
+	prependDllSearchPaths(exeDir);
 	if (!exeDir.isEmpty())
 	{
-#ifdef Q_OS_WIN
-		SetDllDirectoryW(reinterpret_cast<LPCWSTR>(exeDir.utf16()));
-#endif
 		QDir::setCurrent(exeDir);
 	}
 

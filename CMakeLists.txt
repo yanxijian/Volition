@@ -62,8 +62,10 @@ add_subdirectory(clients/markdown)
 add_subdirectory(clients/pdf)
 
 # Stage thin exes + business DLLs beside host (runtime DLLs also copied on each link via volition_copy_runtime_deps).
+# pdf Client is isolated under bin/pdf/ (own abseil); Host only needs the thin exe path registered.
 add_custom_target(volition_stage_clients ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>
+  COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>/pdf
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           $<TARGET_FILE:volition_text>
           $<TARGET_FILE:volition_text_lib>
@@ -75,8 +77,8 @@ add_custom_target(volition_stage_clients ALL
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           $<TARGET_FILE:volition_pdf>
           $<TARGET_FILE:volition_pdf_lib>
-          $<TARGET_FILE_DIR:volition_host>
-  COMMENT "Copy Client thin exes + DLLs beside volition_host"
+          $<TARGET_FILE_DIR:volition_host>/pdf
+  COMMENT "Copy Client thin exes + DLLs beside volition_host (pdf under pdf/)"
   DEPENDS
     volition_host
     volition_text volition_text_lib

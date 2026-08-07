@@ -3,23 +3,27 @@
 
 #include "document_view.hpp"
 
-#include <QLabel>
-#include <QVBoxLayout>
+#include <QPlainTextEdit>
+#include <QSplitter>
+#include <QTextBrowser>
 
 namespace volition
 {
-	/// Placeholder until md4c → QTextBrowser lands.
 	class MarkdownDocumentView final : public DocumentView
 	{
+		Q_OBJECT
 	public:
-		explicit MarkdownDocumentView(QWidget* parent = nullptr)
-			: DocumentView(parent)
-		{
-			auto* lay = new QVBoxLayout(this);
-			auto* label = new QLabel(QStringLiteral("MarkdownDocumentView — md4c preview TBD"), this);
-			label->setAlignment(Qt::AlignCenter);
-			lay->addWidget(label);
-		}
+		explicit MarkdownDocumentView(QWidget* parent = nullptr);
+
+		bool openPath(const QString& path) override;
+		bool save() override;
+		[[nodiscard]] bool isBlank() const override;
+
+	private:
+		void refreshPreview();
+
+		QPlainTextEdit* m_editor = nullptr;
+		QTextBrowser* m_preview = nullptr;
 	};
 } // namespace volition
 

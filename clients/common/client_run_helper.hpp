@@ -45,7 +45,8 @@ namespace volition
 	}
 
 	/// Shared ClientApp bootstrap for thin-exe-loaded DLLs.
-	inline int runClientPlugin(int argc, char** argv, const QString& appName, DocumentStack::DocumentFactory documentFactory)
+	inline int runClientPlugin(int argc, char** argv, const QString& appName, DocumentStack::DocumentFactory documentFactory,
+							   const QString& nameFilters = QString())
 	{
 		QApplication app(argc, argv);
 		QCommandLineParser parser;
@@ -75,9 +76,17 @@ namespace volition
 		qfluentribbon::ThemeBridge bridge;
 		syncRibbonTokensFromEngine(&engine, &bridge);
 
-		mps::client::ContentViewFactory factory = [&engine, &bridge, documentFactory](qint64 tabId, const QString& title)
+		mps::client::ContentViewFactory factory = [&engine, &bridge, documentFactory, nameFilters](qint64 tabId, const QString& title)
 		{
-			return std::make_unique<WorkspaceContentView>(tabId, title, &engine, &bridge, documentFactory);
+			auto view = std::make_unique<WorkspaceContentView>(tabId, title, &engine, &bridge, documentFactory);
+			if (!nameFilters.isEmpty())
+			{
+				if (auto* win = dynamic_cast<WorkspaceWindow*>(view->widget()))
+				{
+					win->setDocumentNameFilters(nameFilters);
+				}
+			}
+			return view;
 		};
 
 		mps::client::ClientApp client(parser.value(endpoint), parser.value(token), std::move(factory), !parser.isSet(noHeartbeat));
@@ -90,6 +99,44 @@ namespace volition
 					(scheme == mps::theme::Scheme::Dark) ? qtheme::ColorScheme::Dark : qtheme::ColorScheme::Light;
 				(void)engine.setColorScheme(cs, /*force=*/true);
 				syncRibbonTokensFromEngine(&engine, &bridge);
+			});
+		client.setInvokeHandler(
+			[](mps::client::ContentView* view, const QString& method, const QByteArray& params, QByteArray* payload, QString* error) -> bool
+			{
+				if (method != QLatin1String("volition.open_document"))
+				{
+					return false;
+				}
+				const QString path = QString::fromUtf8(params);
+				if (path.isEmpty())
+				{
+					if (error)
+					{
+						*error = QStringLiteral("empty path");
+					}
+					return true;
+				}
+				if (!view)
+				{
+					if (error)
+					{
+						*error = QStringLiteral("no content view");
+					}
+					return true;
+				}
+				if (!view->openDocument(path))
+				{
+					if (error)
+					{
+						*error = QStringLiteral("open failed");
+					}
+					return true;
+				}
+				if (payload)
+				{
+					*payload = QByteArrayLiteral("ok");
+				}
+				return true;
 			});
 		if (!client.connectToHost())
 		{
