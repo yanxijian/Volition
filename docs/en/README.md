@@ -57,6 +57,7 @@ docs/zh|en/
 | Topic | 中文（主） | English |
 |-------|------------|---------|
 | Product plan | [../zh/product-plan.md](../zh/product-plan.md) | — |
+| Toolchain contract | [../zh/toolchain.md](../zh/toolchain.md) | [toolchain.md](toolchain.md) |
 | Abseil / pdfium staging | [../zh/abseil-pin.md](../zh/abseil-pin.md) | [abseil-pin.md](abseil-pin.md) |
 | This overview | [../../README.md](../../README.md) | [README.md](README.md) |
 

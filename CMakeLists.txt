@@ -6,7 +6,7 @@ project(Volition
   LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -19,7 +19,7 @@ option(VOLITION_DEV_EMBED_MPS "Embed sibling MultiProcessShell via add_subdirect
 option(VOLITION_DEV_EMBED_QTE "Embed sibling QThemeEngine via add_subdirectory" ON)
 option(VOLITION_DEV_EMBED_QFR "Embed sibling QFluentRibbon via add_subdirectory" ON)
 option(VOLITION_DEV_EMBED_PDFIUM
-  "Embed pdfium sources via add_subdirectory (needs vcpkg + Clang-cl; prefer staged output)" OFF)
+  "Embed pdfium sources via add_subdirectory (VolitionToolchain: MSVC cl + C++20 + V8 OFF; prefer staged output)" OFF)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
