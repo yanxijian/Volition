@@ -14,16 +14,16 @@ Phase-1 platform: **Windows (MPS form A)**.
 - **Multi-format shell**: PDF, Markdown, txt, XML, … as Host tabs
 - **Process isolation**: three Client processes; business UI in DLLs loaded by thin exes
 - **Shell hosting**: chrome / tabs / embed / IPC via MPS
-- **Look**: QThemeEngine; QFluentRibbon inside Client DLLs
+- **Look**: [QThemeEngine](https://github.com/yanxijian/QThemeEngine); [QFluentRibbon](https://github.com/yanxijian/QFluentRibbon) inside Client DLLs
 
 ## Requirements
 
 | Item | Notes |
 |------|--------|
 | Qt | **6.8+** Widgets |
-| Framework | MultiProcessShell |
+| Framework | [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell) |
 | Toolchain | CMake 3.21+, Ninja; MSVC x64 on Windows |
-| PDF | pdfium_all (staged `output` or install) |
+| PDF | [pdfium_all](https://github.com/yanxijian/pdfium_all) (staged `output` or install) |
 | Format | `clang-format` 20; `python scripts/format_source.py` |
 
 ## Status
@@ -36,7 +36,7 @@ Phase-1 platform: **Windows (MPS form A)**.
 | Open file (ext→kind → Invoke) | Working |
 | text R/W + XML highlight | Working |
 | markdown tier A (md4c → QTextBrowser) | Working |
-| pdf viewer (in-process pdfium) | Working (needs sibling pdfium_all) |
+| pdf viewer (in-process pdfium) | Working (needs sibling [pdfium_all](https://github.com/yanxijian/pdfium_all)) |
 | CI (format + Windows Qt) | [Actions](https://github.com/yanxijian/Volition/actions/workflows/ci.yml) |
 
 ## Layout

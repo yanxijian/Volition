@@ -4,7 +4,7 @@ Volition **pdf** Client：`volition_pdf.exe` + `volition_pdf.dll`（与 text/mar
 
 `clientKind` / `appName` = `pdf`。
 
-同进程链接产品路径 pdfium（`PDFIUM_ENABLE_V8=OFF`），与 MPS 共用 AbseilPin `abseil_dll`。  
+同进程链接产品路径 pdfium（`PDFIUM_ENABLE_V8=OFF`），与 MPS 共用 [AbseilPin](https://github.com/yanxijian/AbseilPin) `abseil_dll`。  
 可选 OOP：`-DVOLITION_PDF_OOP_RENDER=ON`，运行时 `VOLITION_PDF_OOP=1` → `bin/render/volition_pdf_render.exe`。
 
 ## 产物

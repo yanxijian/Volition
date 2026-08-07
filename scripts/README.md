@@ -3,7 +3,7 @@
 | 脚本 | 说明 |
 |------|------|
 | `format_source.py` | 按 `.clang-format` 格式化手写 C/C++；写入后恢复 **UTF-8 BOM + CRLF**；`--check` 另验 BOM/换行与行宽 140 |
-| `smoke_bin_layout.ps1` | 检查 `build/bin`：扁平布局、单份 `abseil_dll`、可选与 AbseilPin hash 一致、有 pdfium 时校验同进程依赖 |
+| `smoke_bin_layout.ps1` | 检查 `build/bin`：扁平布局、单份 `abseil_dll`、可选与 [AbseilPin](https://github.com/yanxijian/AbseilPin) hash 一致、有 pdfium 时校验同进程依赖 |
 
 本地构建示例（旁路仓在 `D:\Codes\*`）：
 
