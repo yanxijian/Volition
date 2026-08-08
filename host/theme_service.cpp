@@ -1,16 +1,14 @@
 ﻿#include "theme_service.hpp"
 
+#include "app_settings.hpp"
 #include "qtheme/api.hpp"
 
 #include <QApplication>
-#include <QSettings>
 
 namespace volition::host
 {
 	namespace
 	{
-		constexpr auto kOrg = "yanxijian";
-		constexpr auto kApp = "volition_host";
 		constexpr auto kSchemeKey = "appearance/colorScheme";
 	} // namespace
 
@@ -48,7 +46,7 @@ namespace volition::host
 
 	mps::theme::Scheme ThemeService::loadPersistedOrDefault() const
 	{
-		QSettings settings(QString::fromUtf8(kOrg), QString::fromUtf8(kApp));
+		QSettings settings = makeAppSettings();
 		const QByteArray raw = settings.value(QString::fromUtf8(kSchemeKey), QStringLiteral("light")).toString().toUtf8();
 		mps::theme::Scheme wire = mps::theme::Scheme::Light;
 		if (!mps::theme::fromParams(raw, &wire))
@@ -60,7 +58,7 @@ namespace volition::host
 
 	void ThemeService::persist(mps::theme::Scheme scheme) const
 	{
-		QSettings settings(QString::fromUtf8(kOrg), QString::fromUtf8(kApp));
+		QSettings settings = makeAppSettings();
 		settings.setValue(QString::fromUtf8(kSchemeKey), QString::fromUtf8(mps::theme::toParams(scheme)));
 	}
 } // namespace volition::host

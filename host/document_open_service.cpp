@@ -1,6 +1,7 @@
 ﻿#include "document_open_service.hpp"
 
 #include "client_kind.hpp"
+#include "library_store.hpp"
 
 #include <QFileDialog>
 #include <QFileInfo>
@@ -8,9 +9,10 @@
 
 namespace volition::host
 {
-	DocumentOpenService::DocumentOpenService(mps::host::ShellApp* app, QObject* parent)
+	DocumentOpenService::DocumentOpenService(mps::host::ShellApp* app, LibraryStore* library, QObject* parent)
 		: QObject(parent)
 		, m_app(app)
+		, m_library(library)
 	{
 		if (!m_app)
 		{
@@ -23,14 +25,61 @@ namespace volition::host
 				});
 	}
 
+	qint64 DocumentOpenService::findOpenTabForPath(const QString& absolutePath) const
+	{
+		if (!m_app || absolutePath.isEmpty())
+		{
+			return 0;
+		}
+		const auto it = m_pathToTab.constFind(absolutePath);
+		if (it == m_pathToTab.cend())
+		{
+			return 0;
+		}
+		const qint64 tabId = it.value();
+		if (!m_app->shellForTab(tabId))
+		{
+			return 0;
+		}
+		return tabId;
+	}
+
+	void DocumentOpenService::forgetTab(qint64 tabId)
+	{
+		const auto it = m_tabToPath.constFind(tabId);
+		if (it == m_tabToPath.cend())
+		{
+			return;
+		}
+		m_pathToTab.remove(it.value());
+		m_tabToPath.erase(it);
+	}
+
+	void DocumentOpenService::rememberOpen(qint64 tabId, const QString& absolutePath)
+	{
+		if (tabId == 0 || absolutePath.isEmpty())
+		{
+			return;
+		}
+		forgetTab(tabId);
+		if (const qint64 old = m_pathToTab.value(absolutePath, 0); old != 0 && old != tabId)
+		{
+			m_tabToPath.remove(old);
+		}
+		m_pathToTab.insert(absolutePath, tabId);
+		m_tabToPath.insert(tabId, absolutePath);
+	}
+
 	void DocumentOpenService::sendOpen(qint64 tabId, const QString& path)
 	{
 		if (!m_app || tabId == 0 || path.isEmpty())
 		{
 			return;
 		}
-		m_app->setTabTitle(tabId, QFileInfo(path).fileName());
-		m_app->invokeOnTab(tabId, QStringLiteral("volition.open_document"), path.toUtf8());
+		const QString absolute = QFileInfo(path).absoluteFilePath();
+		rememberOpen(tabId, absolute);
+		m_app->setTabTitle(tabId, QFileInfo(absolute).fileName());
+		m_app->invokeOnTab(tabId, QStringLiteral("volition.open_document"), absolute.toUtf8());
 	}
 
 	void DocumentOpenService::flushPendingForApp(const QString& appName, qint64 tabId)
@@ -58,20 +107,29 @@ namespace volition::host
 		const QString kind = clientKindForPath(path);
 		if (kind.isEmpty())
 		{
-			QMessageBox::warning(shell, QStringLiteral("Volition"),
-								 QStringLiteral("Unsupported file type:\n%1").arg(QFileInfo(path).fileName()));
+			QMessageBox::warning(shell, tr("Volition"), tr("Unsupported file type:\n%1").arg(QFileInfo(path).fileName()));
 			return;
 		}
-		if (!QFileInfo::exists(path))
+		const QString absolute = QFileInfo(path).absoluteFilePath();
+		if (!QFileInfo::exists(absolute))
 		{
-			QMessageBox::warning(shell, QStringLiteral("Volition"), QStringLiteral("File not found:\n%1").arg(path));
+			QMessageBox::warning(shell, tr("Volition"), tr("File not found:\n%1").arg(path));
 			return;
 		}
 
-		const qint64 existing = m_app->findTabIdForApp(kind);
-		if (existing != 0)
+		if (m_library)
 		{
-			sendOpen(existing, path);
+			m_library->recordOpened(absolute);
+		}
+
+		// Drop stale mappings (tab closed) before reuse check.
+		if (const auto it = m_pathToTab.constFind(absolute); it != m_pathToTab.cend() && !m_app->shellForTab(it.value()))
+		{
+			forgetTab(it.value());
+		}
+
+		if (const qint64 existing = findOpenTabForPath(absolute); existing != 0)
+		{
 			if (mps::host::ShellWindow* owner = m_app->shellForTab(existing))
 			{
 				m_app->activateTab(owner, existing);
@@ -79,7 +137,7 @@ namespace volition::host
 			return;
 		}
 
-		m_pending.push_back(Pending{kind, path, shell});
+		m_pending.push_back(Pending{kind, absolute, shell});
 		m_app->createClientOn(shell, kind);
 	}
 
@@ -89,7 +147,7 @@ namespace volition::host
 		{
 			return;
 		}
-		const QString path = QFileDialog::getOpenFileName(shell, QStringLiteral("Open Document"), QString(), openFileDialogFilter());
+		const QString path = QFileDialog::getOpenFileName(shell, tr("Open Document"), QString(), openFileDialogFilter());
 		if (!path.isEmpty())
 		{
 			openPath(shell, path);

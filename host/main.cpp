@@ -1,6 +1,8 @@
 ﻿#include "client_kind.hpp"
 #include "document_open_service.hpp"
 #include "home_content.hpp"
+#include "language_service.hpp"
+#include "library_store.hpp"
 #include "shell_app.hpp"
 #include "theme_service.hpp"
 
@@ -31,6 +33,9 @@ int main(int argc, char* argv[])
 	QCoreApplication::setOrganizationName(QStringLiteral("yanxijian"));
 	QCoreApplication::setApplicationName(QStringLiteral("volition_host"));
 
+	volition::host::LanguageService language;
+	language.start(&app);
+
 	volition::host::ThemeService theme;
 	theme.start(&app);
 
@@ -57,11 +62,12 @@ int main(int argc, char* argv[])
 			return volition::host::defaultTabTitle(appName, contentIndex);
 		});
 
-	volition::host::DocumentOpenService openService(&shellApp);
+	volition::host::LibraryStore library;
+	volition::host::DocumentOpenService openService(&shellApp, &library);
 	shellApp.setHomeContentFactory(
-		[&shellApp, &openService](mps::host::ShellWindow* shell) -> QWidget*
+		[&shellApp, &openService, &library, &language](mps::host::ShellWindow* shell) -> QWidget*
 		{
-			return new volition::host::HomeContent(&shellApp, shell, &openService);
+			return new volition::host::HomeContent(&shellApp, shell, &openService, &library, &language);
 		});
 	QObject::connect(&shellApp, &mps::host::ShellApp::schemeChanged, &theme,
 					 [&theme](mps::theme::Scheme scheme, mps::host::ThemeOrigin origin)
