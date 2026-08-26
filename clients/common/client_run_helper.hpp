@@ -103,6 +103,15 @@ namespace volition
 		client.setInvokeHandler(
 			[](mps::client::ContentView* view, const QString& method, const QByteArray& params, QByteArray* payload, QString* error) -> bool
 			{
+				if (method == QLatin1String("volition.show_find"))
+				{
+					if (auto* workspace = dynamic_cast<WorkspaceContentView*>(view))
+					{
+						workspace->showFindBar();
+						return true;
+					}
+					return false;
+				}
 				if (method != QLatin1String("volition.open_document"))
 				{
 					return false;

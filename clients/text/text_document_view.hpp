@@ -3,11 +3,18 @@
 
 #include "document_view.hpp"
 
+#include <QApplication>
 #include <QColor>
 #include <QFile>
 #include <QFileInfo>
+#include <QHBoxLayout>
+#include <QKeyEvent>
+#include <QLabel>
+#include <QLineEdit>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QRegularExpression>
+#include <QShortcut>
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 #include <QVBoxLayout>
@@ -76,12 +83,77 @@ namespace volition
 			m_editor->setPlaceholderText(QStringLiteral("Text document…"));
 			m_editor->setLineWrapMode(QPlainTextEdit::NoWrap);
 			m_editor->setTabStopDistance(m_editor->fontMetrics().horizontalAdvance(QLatin1Char(' ')) * 4);
+			m_editor->installEventFilter(this);
+			qApp->installEventFilter(this);
+
+			auto* findBar = new QWidget(this);
+			m_findBar = findBar;
+			auto* findLayout = new QHBoxLayout(findBar);
+			findLayout->setContentsMargins(4, 4, 4, 4);
+			m_findEdit = new QLineEdit(findBar);
+			m_findEdit->setPlaceholderText(QStringLiteral("Find"));
+			m_findStatus = new QLabel(findBar);
+			auto* previousButton = new QPushButton(QStringLiteral("Previous"), findBar);
+			auto* nextButton = new QPushButton(QStringLiteral("Next"), findBar);
+			auto* closeButton = new QPushButton(QStringLiteral("Close"), findBar);
+			findLayout->addWidget(m_findEdit);
+			findLayout->addWidget(m_findStatus);
+			findLayout->addWidget(previousButton);
+			findLayout->addWidget(nextButton);
+			findLayout->addWidget(closeButton);
+			findBar->setVisible(false);
+			lay->addWidget(findBar);
 			lay->addWidget(m_editor);
+
+			connect(m_findEdit, &QLineEdit::textChanged, this,
+					[this]()
+					{
+						findNext();
+					});
+			connect(previousButton, &QPushButton::clicked, this,
+					[this]()
+					{
+						findPrevious();
+					});
+			connect(nextButton, &QPushButton::clicked, this,
+					[this]()
+					{
+						findNext();
+					});
+			connect(closeButton, &QPushButton::clicked, findBar,
+					[findBar]()
+					{
+						findBar->setVisible(false);
+					});
+			auto* findShortcut = new QShortcut(QKeySequence::Find, m_editor);
+			findShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+			connect(findShortcut, &QShortcut::activated, this,
+					[this]()
+					{
+						showFindBar();
+					});
+		}
+
+		~TextDocumentView() override
+		{
+			qApp->removeEventFilter(this);
 		}
 
 		[[nodiscard]] QPlainTextEdit* editor() const
 		{
 			return m_editor;
+		}
+
+		void showFindBar() override
+		{
+			m_findBar->setVisible(true);
+			m_findEdit->setFocus();
+			m_findEdit->selectAll();
+		}
+
+		void activate() override
+		{
+			m_editor->setFocus(Qt::OtherFocusReason);
 		}
 
 		bool openPath(const QString& path) override
@@ -119,6 +191,58 @@ namespace volition
 		}
 
 	private:
+		bool eventFilter(QObject* watched, QEvent* event) override
+		{
+			if (event->type() == QEvent::KeyPress && isVisible())
+			{
+				auto* keyEvent = static_cast<QKeyEvent*>(event);
+				if (keyEvent->key() == Qt::Key_F && keyEvent->modifiers().testFlag(Qt::ControlModifier))
+				{
+					showFindBar();
+					return true;
+				}
+			}
+			return DocumentView::eventFilter(watched, event);
+		}
+
+		void findNext()
+		{
+			if (m_findEdit->text().isEmpty())
+			{
+				m_findStatus->clear();
+				return;
+			}
+			if (!m_editor->find(m_findEdit->text()))
+			{
+				m_editor->moveCursor(QTextCursor::Start);
+				if (!m_editor->find(m_findEdit->text()))
+				{
+					m_findStatus->setText(QStringLiteral("Not found"));
+					return;
+				}
+			}
+			m_findStatus->setText(QStringLiteral("Found"));
+		}
+
+		void findPrevious()
+		{
+			if (m_findEdit->text().isEmpty())
+			{
+				m_findStatus->clear();
+				return;
+			}
+			if (!m_editor->find(m_findEdit->text(), QTextDocument::FindBackward))
+			{
+				m_editor->moveCursor(QTextCursor::End);
+				if (!m_editor->find(m_findEdit->text(), QTextDocument::FindBackward))
+				{
+					m_findStatus->setText(QStringLiteral("Not found"));
+					return;
+				}
+			}
+			m_findStatus->setText(QStringLiteral("Found"));
+		}
+
 		void updateHighlighter(const QString& path)
 		{
 			delete m_highlighter;
@@ -130,6 +254,9 @@ namespace volition
 		}
 
 		QPlainTextEdit* m_editor = nullptr;
+		QWidget* m_findBar = nullptr;
+		QLineEdit* m_findEdit = nullptr;
+		QLabel* m_findStatus = nullptr;
 		XmlSyntaxHighlighter* m_highlighter = nullptr;
 	};
 } // namespace volition

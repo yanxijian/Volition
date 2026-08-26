@@ -6,7 +6,7 @@ Volition **text** Client：`volition_text.exe`（薄壳）+ `volition_text.dll`�
 
 ## 覆盖类型
 
-`.txt`、`.xml`（仅语法高亮）。**不含** `.md`（见 `clients/markdown/`）。
+`.txt`、`.xml`、`.json`、`.ini`、`.log`、`.csv`；其中 `.xml` 提供基础语法高亮。编辑器支持 `Ctrl+F` 查找。**不含** `.md`（见 `clients/markdown/`）。
 
 ## 产物
 

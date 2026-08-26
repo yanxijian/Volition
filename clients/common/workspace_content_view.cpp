@@ -76,6 +76,19 @@ namespace volition
 		}
 	}
 
+	void WorkspaceContentView::activate()
+	{
+		if (!m_window)
+		{
+			return;
+		}
+		m_window->activateWindow();
+		if (DocumentStack* stack = m_window->documentStack())
+		{
+			stack->activateCurrentDocument();
+		}
+	}
+
 	void WorkspaceContentView::syncRibbonTokens()
 	{
 		if (!m_engine || !m_bridge)
@@ -129,5 +142,13 @@ namespace volition
 			return false;
 		}
 		return m_window->documentStack()->openDocument(path) != nullptr;
+	}
+
+	void WorkspaceContentView::showFindBar()
+	{
+		if (m_window && m_window->documentStack())
+		{
+			m_window->documentStack()->showFindBar();
+		}
 	}
 } // namespace volition

@@ -100,6 +100,7 @@ jobs:
             -DMPS_ABSEIL_PIN_PREFIX=%GITHUB_WORKSPACE%/AbseilPin/prefix/20260107.1 ^
             -DVOLITION_PDF_OOP_RENDER=OFF ^
             -DVOLITION_REQUIRE_PDFIUM=OFF ^
+            -DVOLITION_BUILD_TESTS=ON ^
             -DFETCHCONTENT_UPDATES_DISCONNECTED=ON
       - name: Build
         working-directory: Volition
@@ -107,6 +108,14 @@ jobs:
         env:
           QTDIR: ${{ env.QT_ROOT_DIR }}
         run: cmake --build build --config Release
+      - name: Unit tests
+        working-directory: Volition
+        shell: pwsh
+        env:
+          QTDIR: ${{ env.QT_ROOT_DIR }}
+        run: |
+          $env:Path = "$env:QT_ROOT_DIR/bin;$env:Path"
+          ctest --test-dir build -C Release --output-on-failure -R volition_client_kind_test
       - name: Smoke bin layout (AbseilPin)
         working-directory: Volition
         shell: pwsh

@@ -38,6 +38,12 @@ namespace volition
 		{
 			return true;
 		}
+		virtual void showFindBar()
+		{
+		}
+		virtual void activate()
+		{
+		}
 		[[nodiscard]] virtual bool isBlank() const
 		{
 			return m_filePath.isEmpty();

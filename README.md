@@ -34,10 +34,12 @@
 | 产品方案（三 Client / 薄 exe+DLL / 双层 Tab） | [product-plan.md](docs/zh/product-plan.md) |
 | Host + text / markdown / pdf（薄 exe+DLL） | 可用 |
 | Open 文件（后缀→kind → Invoke 打开） | 可用 |
-| text 读写 + XML 高亮 | 可用 |
+| text 读写 + 查找 + XML 高亮 | 可用 |
 | markdown 档 A（md4c → QTextBrowser） | 可用 |
 | pdf 阅读（同进程 pdfium） | 可用（需旁路 [pdfium_all](https://github.com/yanxijian/pdfium_all)） |
 | CI（format + Windows Qt） | [Actions](https://github.com/yanxijian/Volition/actions/workflows/ci.yml) |
+
+文本 Client 当前按后缀支持 `.txt`、`.xml`、`.json`、`.ini`、`.log`、`.csv`；按 `Ctrl+F` 可打开查找栏。单元测试可通过 `-DVOLITION_BUILD_TESTS=ON` 启用。
 
 ## 仓库布局
 

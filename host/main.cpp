@@ -10,6 +10,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QShortcut>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -79,6 +80,20 @@ int main(int argc, char* argv[])
 						 }
 					 });
 	shellApp.setScheme(theme.scheme(), mps::host::ThemeOrigin::Startup);
-	(void)shellApp.createShell();
+	mps::host::ShellWindow* shell = shellApp.createShell();
+	if (shell)
+	{
+		auto* findShortcut = new QShortcut(QKeySequence::Find, shell);
+		findShortcut->setContext(Qt::ApplicationShortcut);
+		QObject::connect(findShortcut, &QShortcut::activated, shell,
+						 [shell, &shellApp]()
+						 {
+							 const qint64 tabId = shell->activeTabId();
+							 if (tabId != 0)
+							 {
+								 shellApp.invokeOnTab(tabId, QStringLiteral("volition.show_find"), {});
+							 }
+						 });
+	}
 	return app.exec();
 }

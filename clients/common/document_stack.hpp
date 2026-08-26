@@ -35,6 +35,8 @@ namespace volition
 		DocumentView* openDocument(const QString& path);
 		void openDocumentWithDialog();
 		bool saveCurrentDocument();
+		void showFindBar();
+		void activateCurrentDocument();
 
 	signals:
 		void documentCountChanged(int count);

@@ -62,7 +62,7 @@ if ($RequirePdfium -and -not $havePdfClient) {
 if ($havePdfClient) {
   Ok "Host + Client thin exes + volition_pdf.dll"
 } else {
-  Ok "Host + text/markdown Clients (PDF Client omitted — no pdfium in this build)"
+  Ok "Host + text/markdown Clients (PDF Client omitted - no pdfium in this build)"
 }
 
 $renderExe = Join-Path $BinDir "render\volition_pdf_render.exe"

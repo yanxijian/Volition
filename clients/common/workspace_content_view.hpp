@@ -31,8 +31,10 @@ namespace volition
 		[[nodiscard]] qint64 tabId() const override;
 		void realizeChrome() override;
 		void syncAfterEmbed() override;
+		void activate() override;
 		void applyTheme(mps::theme::Scheme scheme) override;
 		bool openDocument(const QString& path) override;
+		void showFindBar();
 
 	protected:
 		void syncRibbonTokens();

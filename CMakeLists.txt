@@ -16,6 +16,7 @@ if(MSVC)
 endif()
 
 option(VOLITION_BUILD_APPS "Build volition_host and Client thin exe + DLLs" ON)
+option(VOLITION_BUILD_TESTS "Build Volition unit tests" OFF)
 option(VOLITION_DEV_EMBED_MPS "Embed sibling MultiProcessShell via add_subdirectory" ON)
 option(VOLITION_DEV_EMBED_QTE "Embed sibling QThemeEngine via add_subdirectory" ON)
 option(VOLITION_DEV_EMBED_QFR "Embed sibling QFluentRibbon via add_subdirectory" ON)
@@ -68,6 +69,12 @@ if(VOLITION_PDFIUM_TARGET AND NOT VOLITION_PDFIUM_TARGET STREQUAL "")
   set(_volition_have_pdf_client TRUE)
 else()
   message(STATUS "Volition: skipping clients/pdf (no pdfium; CI may omit staged prefix)")
+endif()
+
+if(VOLITION_BUILD_TESTS)
+  enable_testing()
+  find_package(Qt6 REQUIRED COMPONENTS Test)
+  add_subdirectory(tests)
 endif()
 
 # Stage thin exes + business DLLs beside host (runtime DLLs also copied on each link via volition_copy_runtime_deps).

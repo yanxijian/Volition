@@ -177,4 +177,20 @@ namespace volition
 		}
 		return true;
 	}
+
+	void DocumentStack::showFindBar()
+	{
+		if (auto* view = dynamic_cast<DocumentView*>(currentWidget()))
+		{
+			view->showFindBar();
+		}
+	}
+
+	void DocumentStack::activateCurrentDocument()
+	{
+		if (auto* view = dynamic_cast<DocumentView*>(currentWidget()))
+		{
+			view->activate();
+		}
+	}
 } // namespace volition
