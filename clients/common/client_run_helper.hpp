@@ -147,11 +147,21 @@ namespace volition
 				}
 				return true;
 			});
-		if (!client.connectToHost())
-		{
-			return 3;
-		}
-		return app.exec();
+		int connectionExitCode = 0;
+		QObject::connect(&client, &mps::client::ClientApp::connectionReady, &app,
+						 [&]()
+						 {
+							 connectionExitCode = 0;
+						 });
+		QObject::connect(&client, &mps::client::ClientApp::connectionFailed, &app,
+						 [&](const QString&)
+						 {
+							 connectionExitCode = 3;
+							 app.quit();
+						 });
+		client.connectToHost();
+		app.exec();
+		return connectionExitCode;
 	}
 } // namespace volition
 
