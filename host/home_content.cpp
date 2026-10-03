@@ -6,9 +6,11 @@
 #include "library_store.hpp"
 #include "shell_app.hpp"
 #include "shell_window.hpp"
+#include "qtheme/api.hpp"
 #include "theme_origin.hpp"
 #include "theme_scheme.hpp"
 
+#include <QApplication>
 #include <QAbstractItemView>
 #include <QComboBox>
 #include <QDialog>
@@ -37,7 +39,25 @@ namespace volition::host
 		constexpr int kPathRole = Qt::UserRole;
 		constexpr int kLeftNavWidth = 220;
 
-		void styleNavButton(QPushButton* btn, bool checkable)
+		[[nodiscard]] QColor mixRgb(const QColor& a, const QColor& b, int aParts, int bParts)
+		{
+			const int t = qMax(1, aParts + bParts);
+			return QColor((a.red() * aParts + b.red() * bParts) / t, (a.green() * aParts + b.green() * bParts) / t,
+						  (a.blue() * aParts + b.blue() * bParts) / t);
+		}
+
+		[[nodiscard]] QColor contrastingText(const QColor& bg, const QColor& darkFg, const QColor& lightFg)
+		{
+			return bg.lightness() < 140 ? lightFg : darkFg;
+		}
+
+		[[nodiscard]] QColor themeColor(const QString& group, const QString& role, const QColor& fallback)
+		{
+			const QColor c = qtheme::api::color(group, role, fallback);
+			return c.isValid() ? c : fallback;
+		}
+
+		void configureNavButton(QPushButton* btn, bool checkable)
 		{
 			btn->setCheckable(checkable);
 			btn->setFlat(true);
@@ -45,15 +65,58 @@ namespace volition::host
 			btn->setAutoDefault(false);
 			btn->setDefault(false);
 			btn->setCursor(Qt::PointingHandCursor);
-			btn->setStyleSheet(QStringLiteral(
-				"QPushButton { text-align: left; padding: 8px 12px; border: none; outline: none; border-radius: 4px;"
-				" background: transparent; color: palette(window-text); }"
-				"QPushButton:hover { background: palette(midlight); color: palette(window-text); border: none; outline: none; }"
-				"QPushButton:checked { background: palette(mid); color: palette(window-text); border: none; outline: none; font-weight: "
-				"600; }"
-				"QPushButton:focus { border: none; outline: none; color: palette(window-text); }"
-				"QPushButton:pressed { border: none; outline: none; color: palette(window-text); }"
-				"QPushButton:disabled { color: palette(mid); }"));
+		}
+
+		void applyNavChrome(QPushButton* openBtn, QPushButton* recentBtn, QPushButton* favoritesBtn, QLabel* dirsLabel, QLabel* listHint,
+							QTreeWidget* dirTree)
+		{
+			const QPalette pal = QApplication::palette();
+			const QColor window = pal.color(QPalette::Window);
+			const QColor windowText = pal.color(QPalette::WindowText);
+
+			const QColor idleFg = themeColor(QStringLiteral("palette"), QStringLiteral("windowText"), windowText);
+			const QColor hoverBg = themeColor(QStringLiteral("button"), QStringLiteral("bg.hover"), mixRgb(window, idleFg, 7, 1));
+			const QColor selectedBg = themeColor(QStringLiteral("button"), QStringLiteral("bg.checked"), mixRgb(window, idleFg, 5, 2));
+			const QColor selectedFg = contrastingText(selectedBg, idleFg, QColor(255, 255, 255));
+			const QColor muted = themeColor(QStringLiteral("palette"), QStringLiteral("text.tertiary"), mixRgb(idleFg, window, 3, 2));
+
+			const QString navQss = QStringLiteral("QPushButton {"
+												  " text-align: left; padding: 8px 12px; border: none; outline: none;"
+												  " border-radius: 4px; background: transparent; color: %1;"
+												  "}"
+												  "QPushButton:hover { background: %2; color: %1; border: none; outline: none; }"
+												  "QPushButton:checked { background: %3; color: %4; border: none; outline: none; font-weight: 600; }"
+												  "QPushButton:pressed { background: %3; color: %4; border: none; outline: none; }"
+												  "QPushButton:focus { border: none; outline: none; color: %1; }"
+												  "QPushButton:checked:focus { color: %4; }")
+									   .arg(idleFg.name(QColor::HexRgb), hoverBg.name(QColor::HexRgb), selectedBg.name(QColor::HexRgb),
+											selectedFg.name(QColor::HexRgb));
+
+			for (QPushButton* btn : {openBtn, recentBtn, favoritesBtn})
+			{
+				if (btn)
+				{
+					btn->setStyleSheet(navQss);
+				}
+			}
+
+			if (dirsLabel)
+			{
+				dirsLabel->setStyleSheet(QStringLiteral("color: %1; padding: 8px 12px 2px 12px;").arg(muted.name(QColor::HexRgb)));
+			}
+			if (listHint)
+			{
+				listHint->setStyleSheet(QStringLiteral("color: %1;").arg(muted.name(QColor::HexRgb)));
+			}
+			if (dirTree)
+			{
+				dirTree->setStyleSheet(QStringLiteral("QTreeWidget { background: transparent; border: none; color: %1; }"
+													  "QTreeWidget::item { padding: 4px 6px; color: %1; }"
+													  "QTreeWidget::item:hover { background: %2; color: %1; }"
+													  "QTreeWidget::item:selected { background: %3; color: %4; }")
+										   .arg(idleFg.name(QColor::HexRgb), hoverBg.name(QColor::HexRgb), selectedBg.name(QColor::HexRgb),
+												selectedFg.name(QColor::HexRgb)));
+			}
 		}
 
 		[[nodiscard]] bool isSupportedDocument(const QString& path)
@@ -90,9 +153,13 @@ namespace volition::host
 	void HomeContent::changeEvent(QEvent* event)
 	{
 		QWidget::changeEvent(event);
-		if (event && event->type() == QEvent::LanguageChange)
+		if (event && (event->type() == QEvent::LanguageChange || event->type() == QEvent::PaletteChange))
 		{
-			retranslateUi();
+			if (event->type() == QEvent::LanguageChange)
+			{
+				retranslateUi();
+			}
+			applyNavChrome(m_openBtn, m_recentBtn, m_favoritesBtn, m_dirsLabel, m_listHint, m_dirTree);
 		}
 	}
 
@@ -173,6 +240,7 @@ namespace volition::host
 					[this](mps::theme::Scheme, mps::host::ThemeOrigin)
 					{
 						syncThemeLabel();
+						applyNavChrome(m_openBtn, m_recentBtn, m_favoritesBtn, m_dirsLabel, m_listHint, m_dirTree);
 					});
 		}
 		connect(m_themeBtn, &QPushButton::clicked, this,
@@ -205,7 +273,7 @@ namespace volition::host
 		leftLay->setSpacing(4);
 
 		m_openBtn = new QPushButton(left);
-		styleNavButton(m_openBtn, false);
+		configureNavButton(m_openBtn, false);
 		connect(m_openBtn, &QPushButton::clicked, this,
 				[this]()
 				{
@@ -217,8 +285,8 @@ namespace volition::host
 
 		m_recentBtn = new QPushButton(left);
 		m_favoritesBtn = new QPushButton(left);
-		styleNavButton(m_recentBtn, true);
-		styleNavButton(m_favoritesBtn, true);
+		configureNavButton(m_recentBtn, true);
+		configureNavButton(m_favoritesBtn, true);
 		connect(m_recentBtn, &QPushButton::clicked, this,
 				[this]()
 				{
@@ -231,7 +299,6 @@ namespace volition::host
 				});
 
 		m_dirsLabel = new QLabel(left);
-		m_dirsLabel->setStyleSheet(QStringLiteral("color: palette(mid); padding: 8px 12px 2px 12px;"));
 
 		m_dirTree = new QTreeWidget(left);
 		m_dirTree->setHeaderHidden(true);
@@ -269,7 +336,6 @@ namespace volition::host
 		rightLay->setSpacing(6);
 
 		m_listHint = new QLabel(right);
-		m_listHint->setStyleSheet(QStringLiteral("color: palette(mid);"));
 
 		m_fileList = new QListWidget(right);
 		m_fileList->setAlternatingRowColors(true);
@@ -297,6 +363,7 @@ namespace volition::host
 		root->addLayout(top);
 		root->addWidget(split, 1);
 
+		applyNavChrome(m_openBtn, m_recentBtn, m_favoritesBtn, m_dirsLabel, m_listHint, m_dirTree);
 		retranslateUi();
 	}
 
