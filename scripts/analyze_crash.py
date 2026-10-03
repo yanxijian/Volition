@@ -39,8 +39,11 @@ mem_ranges: list[tuple[int, int, int]] = []  # (start, size, data offset in src)
 
 
 def load(path: str) -> None:
-    global src
+    global src, streams, mods, mem_ranges
     src = open(path, "rb").read()
+    streams = {}
+    mods = []
+    mem_ranges = []
     sig, _, nstreams, rva_dir = struct.unpack_from("<IIII", src, 0)
     if sig != 0x504D444D:
         raise SystemExit("not a minidump file")
@@ -197,7 +200,8 @@ def sym_init():
     SYMOPT_UNDNAME = 0x2
     SYMOPT_LOAD_LINES = 0x10
     dbh.SymSetOptions(SYMOPT_UNDNAME | SYMOPT_LOAD_LINES)
-    if not dbh.SymInitializeW(_hproc, None, False):
+    search = os.environ.get("_NT_SYMBOL_PATH") or None
+    if not dbh.SymInitializeW(_hproc, search, False):
         return False
     for base, size, path in mods:
         low = path.lower()
@@ -256,7 +260,11 @@ def newest_dump(exe_hint: str | None):
         f
         for f in os.listdir(base)
         if f.lower().endswith(".dmp")
-        and (exe_hint is None or f.lower().startswith(exe_hint.lower() + "."))
+        and (
+            f.lower().startswith(exe_hint.lower() + ".")
+            if exe_hint
+            else any(k in f.lower() for k in ("volition", "mps"))
+        )
     ]
     if not dumps:
         raise SystemExit(
@@ -269,6 +277,8 @@ def newest_dump(exe_hint: str | None):
 def main() -> None:
     argv = sys.argv[1:]
     show_all = "--all" in argv
+    if show_all:
+        argv = [a for a in argv if a != "--all"]
     exe_hint = None
     if "--exe" in argv:
         i = argv.index("--exe")

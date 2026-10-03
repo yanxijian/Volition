@@ -15,9 +15,10 @@ if(MSVC)
   add_compile_options(/MP)
   # Emit PDBs in Release too: WER crash dumps (see scripts/analyze_crash.py)
   # only symbolicate against our own binaries when PDBs sit beside them.
-  # /Zi keeps Release optimization unchanged, /DEBUG:FULL only adds symbols.
+  # /Zi keeps compiler Release optimization; /DEBUG:FULL emits a linker PDB
+  # and would otherwise disable /OPT:REF/ICF.
   add_compile_options("$<$<CONFIG:Release>:/Zi>")
-  add_link_options("$<$<CONFIG:Release>:/DEBUG:FULL>")
+  add_link_options("$<$<CONFIG:Release>:/DEBUG:FULL;/OPT:REF;/OPT:ICF>")
 endif()
 
 option(VOLITION_BUILD_APPS "Build volition_host and Client thin exe + DLLs" ON)
@@ -82,7 +83,8 @@ if(VOLITION_BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
-# Stage thin exes + business DLLs beside host (runtime DLLs also copied on each link via volition_copy_runtime_deps).
+# Stage thin exes + business DLLs beside host. Runtime DLLs are copied by
+# volition_copy_runtime_deps (custom target DEPENDS the DLL targets, not POST_BUILD on the exe).
 set(_volition_stage_cmds
   COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:volition_host>
   COMMAND ${CMAKE_COMMAND} -E copy_if_different

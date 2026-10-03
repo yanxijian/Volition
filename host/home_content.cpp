@@ -46,17 +46,6 @@ namespace volition::host
 						  (a.blue() * aParts + b.blue() * bParts) / t);
 		}
 
-		[[nodiscard]] QColor contrastingText(const QColor& bg, const QColor& darkFg, const QColor& lightFg)
-		{
-			return bg.lightness() < 140 ? lightFg : darkFg;
-		}
-
-		[[nodiscard]] QColor themeColor(const QString& group, const QString& role, const QColor& fallback)
-		{
-			const QColor c = qtheme::api::color(group, role, fallback);
-			return c.isValid() ? c : fallback;
-		}
-
 		void configureNavButton(QPushButton* btn, bool checkable)
 		{
 			btn->setCheckable(checkable);
@@ -74,11 +63,15 @@ namespace volition::host
 			const QColor window = pal.color(QPalette::Window);
 			const QColor windowText = pal.color(QPalette::WindowText);
 
-			const QColor idleFg = themeColor(QStringLiteral("palette"), QStringLiteral("windowText"), windowText);
-			const QColor hoverBg = themeColor(QStringLiteral("button"), QStringLiteral("bg.hover"), mixRgb(window, idleFg, 7, 1));
-			const QColor selectedBg = themeColor(QStringLiteral("button"), QStringLiteral("bg.checked"), mixRgb(window, idleFg, 5, 2));
-			const QColor selectedFg = contrastingText(selectedBg, idleFg, QColor(255, 255, 255));
-			const QColor muted = themeColor(QStringLiteral("palette"), QStringLiteral("text.tertiary"), mixRgb(idleFg, window, 3, 2));
+			const QColor idleFg = qtheme::api::color(QStringLiteral("palette"), QStringLiteral("windowText"), windowText);
+			const QColor hoverBg = qtheme::api::color(QStringLiteral("button"), QStringLiteral("bg.hover"), mixRgb(window, idleFg, 7, 1));
+			const QColor selectedBg =
+				qtheme::api::color(QStringLiteral("button"), QStringLiteral("bg.checked"), mixRgb(window, idleFg, 5, 2));
+			const QColor selectedFg = qtheme::api::color(QStringLiteral("button"), QStringLiteral("fg"), idleFg);
+			const QColor muted = qtheme::api::color(QStringLiteral("palette"), QStringLiteral("text.tertiary"), mixRgb(idleFg, window, 3, 2));
+			const QColor treeHover = qtheme::api::color(QStringLiteral("view"), QStringLiteral("bg.hover"), hoverBg);
+			const QColor treeSelected = qtheme::api::color(QStringLiteral("view"), QStringLiteral("bg.selected"), selectedBg);
+			const QColor treeSelectedFg = qtheme::api::color(QStringLiteral("view"), QStringLiteral("fg.selected"), selectedFg);
 
 			const QString navQss = QStringLiteral("QPushButton {"
 												  " text-align: left; padding: 8px 12px; border: none; outline: none;"
@@ -86,9 +79,7 @@ namespace volition::host
 												  "}"
 												  "QPushButton:hover { background: %2; color: %1; border: none; outline: none; }"
 												  "QPushButton:checked { background: %3; color: %4; border: none; outline: none; font-weight: 600; }"
-												  "QPushButton:pressed { background: %3; color: %4; border: none; outline: none; }"
-												  "QPushButton:focus { border: none; outline: none; color: %1; }"
-												  "QPushButton:checked:focus { color: %4; }")
+												  "QPushButton:pressed { background: %3; color: %4; border: none; outline: none; }")
 									   .arg(idleFg.name(QColor::HexRgb), hoverBg.name(QColor::HexRgb), selectedBg.name(QColor::HexRgb),
 											selectedFg.name(QColor::HexRgb));
 
@@ -114,8 +105,8 @@ namespace volition::host
 													  "QTreeWidget::item { padding: 4px 6px; color: %1; }"
 													  "QTreeWidget::item:hover { background: %2; color: %1; }"
 													  "QTreeWidget::item:selected { background: %3; color: %4; }")
-										   .arg(idleFg.name(QColor::HexRgb), hoverBg.name(QColor::HexRgb), selectedBg.name(QColor::HexRgb),
-												selectedFg.name(QColor::HexRgb)));
+										   .arg(idleFg.name(QColor::HexRgb), treeHover.name(QColor::HexRgb),
+												treeSelected.name(QColor::HexRgb), treeSelectedFg.name(QColor::HexRgb)));
 			}
 		}
 
