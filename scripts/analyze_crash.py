@@ -2,17 +2,33 @@
 """Analyze a Windows crash dump (WER LocalDumps / MiniDump format).
 
 Parses the minidump directly, then symbolicates addresses with dbghelp
-against the binaries and PDBs recorded in the dump (same machine => the
-embedded PDB paths resolve). Works best with full dumps (DumpType=2):
-those include stack memory, which enables the return-address scan.
+against the binaries and PDBs recorded in the dump (paths embedded in the
+binaries resolve when run on the machine that produced the dump). Works
+best with full dumps (DumpType=2): those include stack memory, which
+enables the return-address scan.
 
 Usage:
-  python scripts/analyze_crash.py <path\\to\\app.exe.PID.dmp> [--all]
+  python scripts/analyze_crash.py <dump.dmp> [--all]   analyze one dump
+  python scripts/analyze_crash.py                       newest dump of any
+                                                        volition/mps process
+  python scripts/analyze_crash.py --exe volition_host   newest dump of one exe
+
+Dump location and symbol search path are environment-based, never hardcoded:
+  %LOCALAPPDATA%\\CrashDumps     default WER LocalDumps folder (see below)
+  _NT_SYMBOL_PATH                extra dbghelp symbol search path (optional)
+
+One-time WER setup for full dumps (per-user registry, no admin required;
+replace <exe> as needed, e.g. volition_host.exe):
+  reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\<exe>" ^
+      /v DumpType /t REG_DWORD /d 2 /f
+  reg add "HKCU\\SOFTWARE\\Microsoft\\Windows\\Windows Error Reporting\\LocalDumps\\<exe>" ^
+      /v DumpCount /t REG_DWORD /d 10 /f
 """
 
 from __future__ import annotations
 
 import ctypes
+import os
 import struct
 import sys
 
@@ -196,11 +212,39 @@ CODES = {
 }
 
 
+def newest_dump(exe_hint: str | None):
+    """Newest .dmp under %LOCALAPPDATA%\\CrashDumps, optionally filtered by exe
+    name prefix. Environment-based: no hardcoded machine paths."""
+    base = os.path.join(os.path.expandvars("%LOCALAPPDATA%"), "CrashDumps")
+    if not os.path.isdir(base):
+        raise SystemExit(f"crash dump folder not found: {base}")
+    dumps = [
+        f
+        for f in os.listdir(base)
+        if f.lower().endswith(".dmp")
+        and (exe_hint is None or f.lower().startswith(exe_hint.lower() + "."))
+    ]
+    if not dumps:
+        raise SystemExit(
+            f"no dumps{f' for {exe_hint}' if exe_hint else ''} in {base}"
+        )
+    dumps.sort(key=lambda f: os.path.getmtime(os.path.join(base, f)))
+    return os.path.join(base, dumps[-1])
+
+
 def main() -> None:
-    if len(sys.argv) < 2:
-        raise SystemExit(__doc__)
-    show_all = "--all" in sys.argv
-    load(sys.argv[1])
+    argv = sys.argv[1:]
+    show_all = "--all" in argv
+    exe_hint = None
+    if "--exe" in argv:
+        i = argv.index("--exe")
+        if i + 1 < len(argv):
+            exe_hint = argv[i + 1]
+            del argv[i : i + 2]  # flag + value out of positional args
+    dump_path = argv[0] if argv else newest_dump(exe_hint)
+    if not argv:
+        print(f"analyzing newest dump: {dump_path}")
+    load(dump_path)
 
     print("== exception ==")
     info = exception_info()
