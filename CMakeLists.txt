@@ -13,6 +13,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(MSVC)
   set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
   add_compile_options(/MP)
+  # Emit PDBs in Release too: WER crash dumps (see scripts/analyze_crash.py)
+  # only symbolicate against our own binaries when PDBs sit beside them.
+  # /Zi keeps Release optimization unchanged, /DEBUG:FULL only adds symbols.
+  add_compile_options("$<$<CONFIG:Release>:/Zi>")
+  add_link_options("$<$<CONFIG:Release>:/DEBUG:FULL>")
 endif()
 
 option(VOLITION_BUILD_APPS "Build volition_host and Client thin exe + DLLs" ON)
