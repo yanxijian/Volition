@@ -11,6 +11,7 @@ Volition and its dependencies (MPS, QTE, QFR, AbseilPin, pdfium product path) sh
 | Abseil | [AbseilPin](https://github.com/yanxijian/AbseilPin) **`20260107.1`** (one copy per process) |
 | pdfium | **`PDFIUM_ENABLE_V8=OFF`** in-process; Acrobat JS stays OOP |
 | Extra global flags | Do not add shell-foreign flags (e.g. `/FIwindows.h`) by default; prefer source fixes |
+| Windows system libs | `target_link_libraries` in `CMakeLists.txt` only; no `#pragma comment(lib, …)` (`.cursor/rules/cmake-windows-libs.mdc`) |
 
 > Shell and pdfium share **C++20**.
 

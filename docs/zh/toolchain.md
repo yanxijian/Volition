@@ -11,6 +11,7 @@ Volition 及其依赖（MPS、QTE、QFR、AbseilPin、pdfium 产品路径）共�
 | Abseil | [AbseilPin](https://github.com/yanxijian/AbseilPin) **`20260107.1`**（进程内一份） |
 | pdfium | **`PDFIUM_ENABLE_V8=OFF`**（同进程）；Acrobat JS 走 OOP |
 | 额外全局旗 | 默认不加壳没有的 `/FIwindows.h` 等；优先改源码 |
+| Windows 系统库 | 只在 `CMakeLists.txt` 里 `target_link_libraries`；禁止 `#pragma comment(lib, …)`（`.cursor/rules/cmake-windows-libs.mdc`） |
 
 > 壳与 pdfium 统一 **C++20**。
 
