@@ -58,7 +58,7 @@ def load(path: str) -> None:
             name = src[namerva + 4 : namerva + 4 + nlen].decode("utf-16-le")
             mods.append((base, msize, name))
             off += 108
-    # Memory64ListStream = 9
+    # Memory64ListStream = 9 (one big blob, WER "full" dumps)
     if 9 in streams:
         _, rva = streams[9][0]
         nranges, base_rva = struct.unpack_from("<QQ", src, rva)
@@ -68,6 +68,17 @@ def load(path: str) -> None:
             start, dsz = struct.unpack_from("<QQ", src, off)
             mem_ranges.append((start, dsz, cur))
             cur += dsz
+            off += 16
+    # MemoryListStream = 5 (per-descriptor, WER default dumps put thread
+    # stacks here — without this the stack scan finds nothing)
+    if 5 in streams:
+        _, rva = streams[5][0]
+        n = struct.unpack_from("<I", src, rva)[0]
+        off = rva + 4
+        for _ in range(n):
+            start, dsz, drva = struct.unpack_from("<QII", src, off)
+            if dsz:
+                mem_ranges.append((start, dsz, drva))
             off += 16
 
 
@@ -79,10 +90,30 @@ def find_mod(addr: int):
 
 
 def read_mem(addr: int, n: int):
-    for start, size, datoff in mem_ranges:
-        if start <= addr and addr + n <= start + size:
-            return src[datoff + (addr - start) : datoff + (addr - start) + n]
-    return None
+    """Best-effort read across multiple possibly-fragmented ranges."""
+    out = bytearray()
+    pos = addr
+    end = addr + n
+    while pos < end:
+        hit = None
+        for start, size, datoff in mem_ranges:
+            if start <= pos < start + size:
+                hit = (start, size, datoff)
+                break
+        if hit is None:
+            # hole: fill with zeros so callers can still scan the rest
+            next_start = min(
+                (s for s, _sz, _o in mem_ranges if s > pos), default=end
+            )
+            fill = min(next_start, end) - pos
+            out += b"\x00" * fill
+            pos += fill
+            continue
+        start, size, datoff = hit
+        chunk = min(start + size, end) - pos
+        out += src[datoff + (pos - start) : datoff + (pos - start) + chunk]
+        pos += chunk
+    return bytes(out)
 
 
 def exception_info():
@@ -95,7 +126,10 @@ def exception_info():
     ctx_size, ctx_rva = struct.unpack_from("<II", src, rva + 8 + 152)
     rip = struct.unpack_from("<Q", src, ctx_rva + 0xF8)[0]
     rsp = struct.unpack_from("<Q", src, ctx_rva + 0x98)[0]
-    return code, fault, rip, rsp, tid
+    rcx = struct.unpack_from("<Q", src, ctx_rva + 0x80)[0]
+    rdx = struct.unpack_from("<Q", src, ctx_rva + 0x88)[0]
+    r8 = struct.unpack_from("<Q", src, ctx_rva + 0xB0)[0]
+    return code, fault, rip, rsp, tid, (rcx, rdx, r8)
 
 
 # ---------------------------------------------------------------- dbghelp
@@ -251,9 +285,12 @@ def main() -> None:
     if not info:
         print("  (no exception stream: dump of a live/hung process?)")
         return
-    code, fault, rip, rsp, tid = info
+    code, fault, rip, rsp, tid, regs = info
     print(f"  code 0x{code:08X} ({CODES.get(code, 'unknown')})  thread {tid}")
     print(f"  fault address 0x{fault:X}   rip 0x{rip:X}   rsp 0x{rsp:X}")
+    print(f"  rcx 0x{regs[0]:X}  rdx 0x{regs[1]:X}  r8 0x{regs[2]:X}")
+    mpath, moff = find_mod(regs[0])
+    print(f"  rcx in: {mpath}+0x{moff:X}" if mpath else "  rcx: not in any module")
     mpath, moff = find_mod(rip)
     print(f"  rip -> {mpath}+0x{moff:X}" if mpath else "  rip -> unknown module")
     sym_init()
@@ -263,9 +300,6 @@ def main() -> None:
 
     print("\n== stack return-address scan ==")
     stk = read_mem(rsp, 0x8000)
-    if not stk:
-        print("  (stack memory absent - configure WER LocalDumps DumpType=2)")
-        return
     shown = 0
     seen = set()
     for i in range(0, len(stk) - 8, 8):
