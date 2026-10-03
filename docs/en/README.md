@@ -15,6 +15,7 @@ Phase-1 platform: **Windows (MPS form A)**.
 - **Process isolation**: three Client processes; business UI in DLLs loaded by thin exes
 - **Shell hosting**: chrome / tabs / embed / IPC via MPS
 - **Look**: [QThemeEngine](https://github.com/yanxijian/QThemeEngine); [QFluentRibbon](https://github.com/yanxijian/QFluentRibbon) inside Client DLLs
+- **Later (verified)**: async/virtualized large text+md; PDF raster off the UI thread; keep AbseilPin. Details: [product-plan §10](../zh/product-plan.md)
 
 ## Requirements
 

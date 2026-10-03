@@ -15,6 +15,7 @@
 - **进程隔离**：三 Client 进程；业务在 DLL，由对应薄 exe 加载
 - **壳托管**：外框 / Tab / 嵌入 / IPC 交给 MPS
 - **主题 / Ribbon**：[QThemeEngine](https://github.com/yanxijian/QThemeEngine)；Client 内 [QFluentRibbon](https://github.com/yanxijian/QFluentRibbon)
+- **以后再做**（已对照代码）：大文件异步/虚拟滚动、PDF 栅格离 UI 线程；见 [product-plan §10](docs/zh/product-plan.md)
 
 ## 要求
 

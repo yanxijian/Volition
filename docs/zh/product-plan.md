@@ -250,7 +250,21 @@ volition_host
 
 ---
 
-## 10. 相关材料
+## 10. 择机改进（已对照代码核实，以后再做）
+
+来源：2026-10 外部点评。只收录与现状相符、且未做的项。
+
+| 项 | 核实 | 拟做 |
+|----|------|------|
+| 大文件加载 | `TextDocumentView` / `MarkdownDocumentView` 均 `QFile::readAll` + `setPlainText`；md4c 全量转 HTML | 大日志/大 md 走异步读 + 虚拟滚动；预览节流。不要在 UI 线程 `readAll` 整文件 |
+| PDF 栅格线程 | PDF 已是独立 Client 进程；`pdfium` 默认同进程画在该 Client 里；可选 `VOLITION_PDF_OOP=1` | 页栅格离 UI 线程；像素走 MPS 共享内存数据面（见 MPS 计划）。**不要**再拆一个「PDF Client」——已经是 |
+| Abseil | `volition_pdf.dll` 与 MPS 共用 AbseilPin `abseil_dll`，避免同进程 ODR | 继续 pin；OOP 渲染作为隔离升级，而非默认再引一份 Abseil |
+
+**不收录**：另建聚合仓（已有 `codes-workspace`）；「pdfium 必须单独 Client」——kind=`pdf` 已是独立进程。
+
+---
+
+## 11. 相关材料
 
 | 材料 | 说明 |
 |------|------|
@@ -260,7 +274,7 @@ volition_host
 
 ---
 
-## 11. 修订记录
+## 12. 修订记录
 
 | 日期 | 说明 |
 |------|------|
@@ -269,3 +283,5 @@ volition_host
 | 2026-08-04 | 产品名 **Volition**；仓库初始化 |
 | 2026-08-07 | 五项决议；双层 Tab；命名表；PDF=pdfium_all；QFR |
 | 2026-08-07 | 独立 markdown；薄 exe + DLL（形态 A） |
+| 2026-10-04 | 择机改进：大文件异步加载、PDF 栅格线程、Abseil pin（对照代码核实） |
+

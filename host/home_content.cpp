@@ -4,14 +4,14 @@
 #include "document_open_service.hpp"
 #include "language_service.hpp"
 #include "library_store.hpp"
+#include "qtheme/api.hpp"
 #include "shell_app.hpp"
 #include "shell_window.hpp"
-#include "qtheme/api.hpp"
 #include "theme_origin.hpp"
 #include "theme_scheme.hpp"
 
-#include <QApplication>
 #include <QAbstractItemView>
+#include <QApplication>
 #include <QComboBox>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -68,20 +68,22 @@ namespace volition::host
 			const QColor selectedBg =
 				qtheme::api::color(QStringLiteral("button"), QStringLiteral("bg.checked"), mixRgb(window, idleFg, 5, 2));
 			const QColor selectedFg = qtheme::api::color(QStringLiteral("button"), QStringLiteral("fg"), idleFg);
-			const QColor muted = qtheme::api::color(QStringLiteral("palette"), QStringLiteral("text.tertiary"), mixRgb(idleFg, window, 3, 2));
+			const QColor muted =
+				qtheme::api::color(QStringLiteral("palette"), QStringLiteral("text.tertiary"), mixRgb(idleFg, window, 3, 2));
 			const QColor treeHover = qtheme::api::color(QStringLiteral("view"), QStringLiteral("bg.hover"), hoverBg);
 			const QColor treeSelected = qtheme::api::color(QStringLiteral("view"), QStringLiteral("bg.selected"), selectedBg);
 			const QColor treeSelectedFg = qtheme::api::color(QStringLiteral("view"), QStringLiteral("fg.selected"), selectedFg);
 
-			const QString navQss = QStringLiteral("QPushButton {"
-												  " text-align: left; padding: 8px 12px; border: none; outline: none;"
-												  " border-radius: 4px; background: transparent; color: %1;"
-												  "}"
-												  "QPushButton:hover { background: %2; color: %1; border: none; outline: none; }"
-												  "QPushButton:checked { background: %3; color: %4; border: none; outline: none; font-weight: 600; }"
-												  "QPushButton:pressed { background: %3; color: %4; border: none; outline: none; }")
-									   .arg(idleFg.name(QColor::HexRgb), hoverBg.name(QColor::HexRgb), selectedBg.name(QColor::HexRgb),
-											selectedFg.name(QColor::HexRgb));
+			const QString navQss =
+				QStringLiteral("QPushButton {"
+							   " text-align: left; padding: 8px 12px; border: none; outline: none;"
+							   " border-radius: 4px; background: transparent; color: %1;"
+							   "}"
+							   "QPushButton:hover { background: %2; color: %1; border: none; outline: none; }"
+							   "QPushButton:checked { background: %3; color: %4; border: none; outline: none; font-weight: 600; }"
+							   "QPushButton:pressed { background: %3; color: %4; border: none; outline: none; }")
+					.arg(idleFg.name(QColor::HexRgb), hoverBg.name(QColor::HexRgb), selectedBg.name(QColor::HexRgb),
+						 selectedFg.name(QColor::HexRgb));
 
 			for (QPushButton* btn : {openBtn, recentBtn, favoritesBtn})
 			{
