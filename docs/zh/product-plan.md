@@ -256,7 +256,7 @@ volition_host
 
 | 项 | 核实 | 拟做 |
 |----|------|------|
-| 大文件加载 | `TextDocumentView` / `MarkdownDocumentView` 均 `QFile::readAll` + `setPlainText`；md4c 全量转 HTML | 大日志/大 md 走异步读 + 虚拟滚动；预览节流。不要在 UI 线程 `readAll` 整文件 |
+| 大文件加载 | **已落地阈值异步读（2026-10-04）**：`AsyncFileLoader`（≥512KB 进线程池）；Markdown 大文预览 debounce | 完整虚拟滚动仍待做 |
 | PDF 栅格线程 | PDF 已是独立 Client 进程；`pdfium` 默认同进程画在该 Client 里；可选 `VOLITION_PDF_OOP=1` | 页栅格离 UI 线程；像素走 MPS 共享内存数据面（见 MPS 计划）。**不要**再拆一个「PDF Client」——已经是 |
 | Abseil | `volition_pdf.dll` 与 MPS 共用 AbseilPin `abseil_dll`，避免同进程 ODR | 继续 pin；OOP 渲染作为隔离升级，而非默认再引一份 Abseil |
 

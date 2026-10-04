@@ -1,8 +1,10 @@
 ﻿#include "markdown_document_view.hpp"
 
+#include "async_file_loader.hpp"
+
 #include <QFile>
 #include <QFileInfo>
-#include <QHBoxLayout>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include <md4c-html.h>
@@ -47,20 +49,43 @@ namespace volition
 		split->setStretchFactor(0, 1);
 		split->setStretchFactor(1, 1);
 		lay->addWidget(split);
-		connect(m_editor, &QPlainTextEdit::textChanged, this, &MarkdownDocumentView::refreshPreview);
-		refreshPreview();
+
+		m_previewTimer = new QTimer(this);
+		m_previewTimer->setSingleShot(true);
+		m_previewTimer->setInterval(280);
+		connect(m_previewTimer, &QTimer::timeout, this, &MarkdownDocumentView::refreshPreviewNow);
+
+		connect(m_editor, &QPlainTextEdit::textChanged, this, &MarkdownDocumentView::schedulePreviewRefresh);
+
+		m_loader = new AsyncFileLoader(this);
+		connect(m_loader, &AsyncFileLoader::finished, this,
+				[this](const QString& path, const QByteArray& utf8Bytes, const QString& error)
+				{
+					m_loading = false;
+					if (!error.isEmpty())
+					{
+						m_editor->setPlainText(QStringLiteral("Failed to open: %1").arg(error));
+						return;
+					}
+					m_editor->setPlainText(QString::fromUtf8(utf8Bytes));
+					setFilePath(path);
+					refreshPreviewNow();
+				});
+
+		refreshPreviewNow();
 	}
 
 	bool MarkdownDocumentView::openPath(const QString& path)
 	{
-		QFile file(path);
-		if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+		if (!QFileInfo::exists(path))
 		{
 			return false;
 		}
-		m_editor->setPlainText(QString::fromUtf8(file.readAll()));
-		setFilePath(path);
-		refreshPreview();
+		m_loading = true;
+		m_previewTimer->stop();
+		m_editor->setPlainText(QStringLiteral("Loading…"));
+		m_preview->setHtml(QStringLiteral("<p>Loading…</p>"));
+		m_loader->start(path);
 		return true;
 	}
 
@@ -84,9 +109,24 @@ namespace volition
 		return filePath().isEmpty() && m_editor && m_editor->toPlainText().isEmpty();
 	}
 
-	void MarkdownDocumentView::refreshPreview()
+	void MarkdownDocumentView::schedulePreviewRefresh()
 	{
-		if (!m_preview || !m_editor)
+		if (m_loading)
+		{
+			return;
+		}
+		const int chars = m_editor ? m_editor->document()->characterCount() : 0;
+		if (chars > AsyncFileLoader::kAsyncThresholdBytes)
+		{
+			m_previewTimer->start();
+			return;
+		}
+		refreshPreviewNow();
+	}
+
+	void MarkdownDocumentView::refreshPreviewNow()
+	{
+		if (!m_preview || !m_editor || m_loading)
 		{
 			return;
 		}

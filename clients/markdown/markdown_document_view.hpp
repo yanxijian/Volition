@@ -7,8 +7,12 @@
 #include <QSplitter>
 #include <QTextBrowser>
 
+class QTimer;
+
 namespace volition
 {
+	class AsyncFileLoader;
+
 	class MarkdownDocumentView final : public DocumentView
 	{
 		Q_OBJECT
@@ -20,10 +24,14 @@ namespace volition
 		[[nodiscard]] bool isBlank() const override;
 
 	private:
-		void refreshPreview();
+		void schedulePreviewRefresh();
+		void refreshPreviewNow();
 
 		QPlainTextEdit* m_editor = nullptr;
 		QTextBrowser* m_preview = nullptr;
+		AsyncFileLoader* m_loader = nullptr;
+		QTimer* m_previewTimer = nullptr;
+		bool m_loading = false;
 	};
 } // namespace volition
 

@@ -1,6 +1,8 @@
 # Shared Client workspace UI (static) — linked into each volition_*_lib.
 
 add_library(volition_client_ui STATIC
+  async_file_loader.cpp
+  async_file_loader.hpp
   document_stack.cpp
   document_stack.hpp
   document_view.hpp

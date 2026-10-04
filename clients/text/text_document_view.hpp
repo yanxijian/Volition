@@ -1,6 +1,7 @@
 ﻿#ifndef __VOLITION_TEXT_LIB_TEXT_DOCUMENT_VIEW_H__
 #define __VOLITION_TEXT_LIB_TEXT_DOCUMENT_VIEW_H__
 
+#include "async_file_loader.hpp"
 #include "document_view.hpp"
 
 #include <QApplication>
@@ -132,10 +133,28 @@ namespace volition
 					{
 						showFindBar();
 					});
+
+			m_loader = new AsyncFileLoader(this);
+			connect(m_loader, &AsyncFileLoader::finished, this,
+					[this](const QString& path, const QByteArray& utf8Bytes, const QString& error)
+					{
+						if (!error.isEmpty())
+						{
+							m_editor->setPlainText(QStringLiteral("Failed to open: %1").arg(error));
+							return;
+						}
+						m_editor->setPlainText(QString::fromUtf8(utf8Bytes));
+						setFilePath(path);
+						updateHighlighter(path);
+					});
 		}
 
 		~TextDocumentView() override
 		{
+			if (m_loader)
+			{
+				m_loader->cancel();
+			}
 			qApp->removeEventFilter(this);
 		}
 
@@ -158,15 +177,12 @@ namespace volition
 
 		bool openPath(const QString& path) override
 		{
-			QFile file(path);
-			if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+			if (!QFileInfo::exists(path))
 			{
 				return false;
 			}
-			const QByteArray bytes = file.readAll();
-			m_editor->setPlainText(QString::fromUtf8(bytes));
-			setFilePath(path);
-			updateHighlighter(path);
+			m_editor->setPlainText(QStringLiteral("Loading…"));
+			m_loader->start(path);
 			return true;
 		}
 
@@ -258,6 +274,7 @@ namespace volition
 		QLineEdit* m_findEdit = nullptr;
 		QLabel* m_findStatus = nullptr;
 		XmlSyntaxHighlighter* m_highlighter = nullptr;
+		AsyncFileLoader* m_loader = nullptr;
 	};
 } // namespace volition
 
