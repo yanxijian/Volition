@@ -159,8 +159,8 @@ namespace volition
 									 tr("New Host workspace tab (CreateSubWindow)."));
 		auto* openDoc = makeAction(this, QStringLiteral("document.open"), tr("Open"), QStyle::SP_DialogOpenButton,
 								   tr("Open a document in the center stack."));
-		auto* saveDoc = makeAction(this, QStringLiteral("document.save"), tr("Save"), QStyle::SP_DialogSaveButton,
-								   tr("Save current document."));
+		auto* saveDoc =
+			makeAction(this, QStringLiteral("document.save"), tr("Save"), QStyle::SP_DialogSaveButton, tr("Save current document."));
 		auto* light = makeAction(this, QStringLiteral("theme.light"), tr("Light"), QStyle::SP_DialogApplyButton, tr("Fluent Light."));
 		auto* dark = makeAction(this, QStringLiteral("theme.dark"), tr("Dark"), QStyle::SP_ComputerIcon, tr("Fluent Dark."));
 

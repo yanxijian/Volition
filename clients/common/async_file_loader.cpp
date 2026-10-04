@@ -66,8 +66,8 @@ namespace volition
 				{
 					return;
 				}
-				QMetaObject::invokeMethod(self.data(), "deliver", Qt::QueuedConnection, Q_ARG(int, generation),
-										  Q_ARG(QString, path), Q_ARG(QByteArray, bytes), Q_ARG(QString, error));
+				QMetaObject::invokeMethod(self.data(), "deliver", Qt::QueuedConnection, Q_ARG(int, generation), Q_ARG(QString, path),
+										  Q_ARG(QByteArray, bytes), Q_ARG(QString, error));
 			});
 	}
 } // namespace volition
