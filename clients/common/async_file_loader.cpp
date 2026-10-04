@@ -36,7 +36,7 @@ namespace volition
 		const QFileInfo info(path);
 		if (!info.exists() || !info.isFile())
 		{
-			deliver(generation, path, {}, QStringLiteral("File not found"));
+			deliver(generation, path, {}, tr("File not found"));
 			return;
 		}
 

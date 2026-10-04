@@ -54,14 +54,14 @@ namespace volition
 		lay->setContentsMargins(0, 0, 0, 0);
 		auto* bar = new QToolBar(this);
 		auto* prev = new QToolButton(bar);
-		prev->setText(QStringLiteral("Prev"));
+		prev->setText(tr("Prev"));
 		auto* next = new QToolButton(bar);
-		next->setText(QStringLiteral("Next"));
+		next->setText(tr("Next"));
 		auto* zin = new QToolButton(bar);
-		zin->setText(QStringLiteral("Zoom+"));
+		zin->setText(tr("Zoom+"));
 		auto* zout = new QToolButton(bar);
-		zout->setText(QStringLiteral("Zoom-"));
-		m_status = new QLabel(QStringLiteral("No PDF"), bar);
+		zout->setText(tr("Zoom-"));
+		m_status = new QLabel(tr("No PDF"), bar);
 		bar->addWidget(prev);
 		bar->addWidget(next);
 		bar->addWidget(zin);
@@ -225,10 +225,10 @@ namespace volition
 		}
 		if (m_pageCount <= 0)
 		{
-			m_status->setText(QStringLiteral("No PDF"));
+			m_status->setText(tr("No PDF"));
 			return;
 		}
-		m_status->setText(QStringLiteral("Page %1 / %2  Zoom %3%").arg(m_pageIndex + 1).arg(m_pageCount).arg(qRound(m_zoom * 100.0)));
+		m_status->setText(tr("Page %1 / %2  Zoom %3%").arg(m_pageIndex + 1).arg(m_pageCount).arg(qRound(m_zoom * 100.0)));
 	}
 
 	void PdfDocumentView::renderCurrentPage()

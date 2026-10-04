@@ -147,33 +147,31 @@ namespace volition
 		setCentralWidget(m_layout);
 
 		auto* ribbon = ribbonBar();
-		auto* home = ribbon->addTab(QStringLiteral("Home"));
-		auto* view = ribbon->addTab(QStringLiteral("View"));
+		auto* home = ribbon->addTab(tr("Home"));
+		auto* view = ribbon->addTab(tr("View"));
 		if (QTabBar* tabs = ribbon->tabBar())
 		{
 			tabs->setTabData(0, QStringLiteral("H"));
 			tabs->setTabData(1, QStringLiteral("V"));
 		}
 
-		auto* newWindow = makeAction(this, QStringLiteral("window.new"), QStringLiteral("New Window"), QStyle::SP_FileDialogNewFolder,
-									 QStringLiteral("New Host workspace tab (CreateSubWindow)."));
-		auto* openDoc = makeAction(this, QStringLiteral("document.open"), QStringLiteral("Open"), QStyle::SP_DialogOpenButton,
-								   QStringLiteral("Open a document in the center stack."));
-		auto* saveDoc = makeAction(this, QStringLiteral("document.save"), QStringLiteral("Save"), QStyle::SP_DialogSaveButton,
-								   QStringLiteral("Save current document."));
-		auto* light = makeAction(this, QStringLiteral("theme.light"), QStringLiteral("Light"), QStyle::SP_DialogApplyButton,
-								 QStringLiteral("Fluent Light."));
-		auto* dark =
-			makeAction(this, QStringLiteral("theme.dark"), QStringLiteral("Dark"), QStyle::SP_ComputerIcon, QStringLiteral("Fluent Dark."));
+		auto* newWindow = makeAction(this, QStringLiteral("window.new"), tr("New Window"), QStyle::SP_FileDialogNewFolder,
+									 tr("New Host workspace tab (CreateSubWindow)."));
+		auto* openDoc = makeAction(this, QStringLiteral("document.open"), tr("Open"), QStyle::SP_DialogOpenButton,
+								   tr("Open a document in the center stack."));
+		auto* saveDoc = makeAction(this, QStringLiteral("document.save"), tr("Save"), QStyle::SP_DialogSaveButton,
+								   tr("Save current document."));
+		auto* light = makeAction(this, QStringLiteral("theme.light"), tr("Light"), QStyle::SP_DialogApplyButton, tr("Fluent Light."));
+		auto* dark = makeAction(this, QStringLiteral("theme.dark"), tr("Dark"), QStyle::SP_ComputerIcon, tr("Fluent Dark."));
 
-		auto* windowGroup = home->addGroup(QStringLiteral("Window"));
+		auto* windowGroup = home->addGroup(tr("Window"));
 		(void)windowGroup->addAction(newWindow);
 		(void)windowGroup->addAction(openDoc);
 		(void)windowGroup->addAction(saveDoc);
 		if (DocumentStack::multiDocumentUiEnabled())
 		{
-			auto* newDoc = makeAction(this, QStringLiteral("document.new"), QStringLiteral("New Document"), QStyle::SP_FileIcon,
-									  QStringLiteral("New center-pane document tab."));
+			auto* newDoc = makeAction(this, QStringLiteral("document.new"), tr("New Document"), QStyle::SP_FileIcon,
+									  tr("New center-pane document tab."));
 			(void)windowGroup->addAction(newDoc);
 			connect(newDoc, &QAction::triggered, this,
 					[this]()
@@ -202,7 +200,7 @@ namespace volition
 					}
 				});
 
-		auto* themeGroup = home->addGroup(QStringLiteral("Theme"));
+		auto* themeGroup = home->addGroup(tr("Theme"));
 		(void)themeGroup->addAction(light);
 		(void)themeGroup->addAction(dark);
 		connect(light, &QAction::triggered, this,
@@ -216,11 +214,10 @@ namespace volition
 					emit requestThemeScheme(mps::theme::Scheme::Dark);
 				});
 
-		auto* show = view->addGroup(QStringLiteral("Panes"));
-		auto* toggleNav = makeAction(this, QStringLiteral("pane.nav"), QStringLiteral("Navigation"), QStyle::SP_DirIcon,
-									 QStringLiteral("Toggle navigation pane."));
-		auto* toggleUtil = makeAction(this, QStringLiteral("pane.util"), QStringLiteral("Utility"), QStyle::SP_FileDialogInfoView,
-									  QStringLiteral("Toggle utility pane."));
+		auto* show = view->addGroup(tr("Panes"));
+		auto* toggleNav = makeAction(this, QStringLiteral("pane.nav"), tr("Navigation"), QStyle::SP_DirIcon, tr("Toggle navigation pane."));
+		auto* toggleUtil =
+			makeAction(this, QStringLiteral("pane.util"), tr("Utility"), QStyle::SP_FileDialogInfoView, tr("Toggle utility pane."));
 		(void)show->addAction(toggleNav);
 		(void)show->addAction(toggleUtil);
 		connect(toggleNav, &QAction::triggered, this,

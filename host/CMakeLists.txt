@@ -44,10 +44,18 @@ endif()
 
 volition_copy_runtime_deps(volition_host)
 
-# Ship .qm next to the host: bin/langs/volition_*.qm
-add_custom_command(TARGET volition_host POST_BUILD
+# Ship .qm next to the host: bin/langs/volition_*.qm (+ mps_*.qm when embedded).
+set(_volition_langs_copy
   COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:volition_host>/langs"
   COMMAND ${CMAKE_COMMAND} -E copy_if_different ${VOLITION_QM_FILES} "$<TARGET_FILE_DIR:volition_host>/langs/"
+)
+if(MPS_QM_FILES)
+  list(APPEND _volition_langs_copy
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MPS_QM_FILES} "$<TARGET_FILE_DIR:volition_host>/langs/"
+  )
+endif()
+add_custom_command(TARGET volition_host POST_BUILD
+  ${_volition_langs_copy}
   COMMENT "Copy translation .qm files to bin/langs"
   VERBATIM
 )

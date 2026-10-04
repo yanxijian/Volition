@@ -94,7 +94,8 @@ namespace volition::host
 		}
 		if (language == QLatin1String("zh_CN"))
 		{
-			return QStringLiteral("简体中文");
+			const QString native = QLocale(QStringLiteral("zh_CN")).nativeLanguageName();
+			return native.isEmpty() ? language : native;
 		}
 		const QLocale locale(language);
 		const QString native = locale.nativeLanguageName();
@@ -109,6 +110,7 @@ namespace volition::host
 		}
 
 		m_app->removeTranslator(&m_translator);
+		m_app->removeTranslator(&m_mpsTranslator);
 
 		QString lang = language.trimmed();
 		if (lang.isEmpty())
@@ -128,6 +130,13 @@ namespace volition::host
 			else
 			{
 				lang = QStringLiteral("en");
+			}
+
+			// Best-effort companion catalog for MultiProcessShell Host chrome.
+			const QString mpsQm = QDir(langsDir()).filePath(QStringLiteral("mps_") + lang + QString::fromUtf8(kQmSuffix));
+			if (m_mpsTranslator.load(mpsQm))
+			{
+				m_app->installTranslator(&m_mpsTranslator);
 			}
 		}
 

@@ -179,4 +179,180 @@
         <translation>文件夹</translation>
     </message>
 </context>
+<context>
+    <name>volition::AsyncFileLoader</name>
+    <message>
+        <source>File not found</source>
+        <translation>找不到文件</translation>
+    </message>
+</context>
+<context>
+    <name>volition::TextDocumentView</name>
+    <message>
+        <source>Text document…</source>
+        <translation>文本文档…</translation>
+    </message>
+    <message>
+        <source>Find</source>
+        <translation>查找</translation>
+    </message>
+    <message>
+        <source>Previous</source>
+        <translation>上一个</translation>
+    </message>
+    <message>
+        <source>Next</source>
+        <translation>下一个</translation>
+    </message>
+    <message>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <source>Failed to open: %1</source>
+        <translation>打开失败：%1</translation>
+    </message>
+    <message>
+        <source>Loading…</source>
+        <translation>正在加载…</translation>
+    </message>
+    <message>
+        <source>Not found</source>
+        <translation>未找到</translation>
+    </message>
+    <message>
+        <source>Found</source>
+        <translation>已找到</translation>
+    </message>
+</context>
+<context>
+    <name>volition::MarkdownDocumentView</name>
+    <message>
+        <source>Markdown…</source>
+        <translation>Markdown…</translation>
+    </message>
+    <message>
+        <source>Failed to open: %1</source>
+        <translation>打开失败：%1</translation>
+    </message>
+    <message>
+        <source>Loading…</source>
+        <translation>正在加载…</translation>
+    </message>
+</context>
+<context>
+    <name>volition::PdfDocumentView</name>
+    <message>
+        <source>Prev</source>
+        <translation>上一页</translation>
+    </message>
+    <message>
+        <source>Next</source>
+        <translation>下一页</translation>
+    </message>
+    <message>
+        <source>Zoom+</source>
+        <translation>放大</translation>
+    </message>
+    <message>
+        <source>Zoom-</source>
+        <translation>缩小</translation>
+    </message>
+    <message>
+        <source>No PDF</source>
+        <translation>无 PDF</translation>
+    </message>
+    <message>
+        <source>Page %1 / %2  Zoom %3%</source>
+        <translation>第 %1 / %2 页  缩放 %3%</translation>
+    </message>
+</context>
+<context>
+    <name>volition::WorkspaceWindow</name>
+    <message>
+        <source>Home</source>
+        <translation>开始</translation>
+    </message>
+    <message>
+        <source>View</source>
+        <translation>视图</translation>
+    </message>
+    <message>
+        <source>New Window</source>
+        <translation>新建窗口</translation>
+    </message>
+    <message>
+        <source>New Host workspace tab (CreateSubWindow).</source>
+        <translation>在 Host 中新建工作区标签（CreateSubWindow）。</translation>
+    </message>
+    <message>
+        <source>Open</source>
+        <translation>打开</translation>
+    </message>
+    <message>
+        <source>Open a document in the center stack.</source>
+        <translation>在中央文档栈中打开文档。</translation>
+    </message>
+    <message>
+        <source>Save</source>
+        <translation>保存</translation>
+    </message>
+    <message>
+        <source>Save current document.</source>
+        <translation>保存当前文档。</translation>
+    </message>
+    <message>
+        <source>Light</source>
+        <translation>浅色</translation>
+    </message>
+    <message>
+        <source>Fluent Light.</source>
+        <translation>Fluent 浅色。</translation>
+    </message>
+    <message>
+        <source>Dark</source>
+        <translation>深色</translation>
+    </message>
+    <message>
+        <source>Fluent Dark.</source>
+        <translation>Fluent 深色。</translation>
+    </message>
+    <message>
+        <source>Window</source>
+        <translation>窗口</translation>
+    </message>
+    <message>
+        <source>New Document</source>
+        <translation>新建文档</translation>
+    </message>
+    <message>
+        <source>New center-pane document tab.</source>
+        <translation>新建中央窗格文档标签。</translation>
+    </message>
+    <message>
+        <source>Theme</source>
+        <translation>主题</translation>
+    </message>
+    <message>
+        <source>Panes</source>
+        <translation>窗格</translation>
+    </message>
+    <message>
+        <source>Navigation</source>
+        <translation>导航</translation>
+    </message>
+    <message>
+        <source>Toggle navigation pane.</source>
+        <translation>显示/隐藏导航窗格。</translation>
+    </message>
+    <message>
+        <source>Utility</source>
+        <translation>工具</translation>
+    </message>
+    <message>
+        <source>Toggle utility pane.</source>
+        <translation>显示/隐藏工具窗格。</translation>
+    </message>
+</context>
 </TS>
+

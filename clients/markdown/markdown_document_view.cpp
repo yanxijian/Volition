@@ -40,7 +40,7 @@ namespace volition
 		lay->setContentsMargins(0, 0, 0, 0);
 		auto* split = new QSplitter(Qt::Horizontal, this);
 		m_editor = new QPlainTextEdit(split);
-		m_editor->setPlaceholderText(QStringLiteral("Markdown…"));
+		m_editor->setPlaceholderText(tr("Markdown…"));
 		m_editor->setLineWrapMode(QPlainTextEdit::WidgetWidth);
 		m_preview = new QTextBrowser(split);
 		m_preview->setOpenExternalLinks(true);
@@ -64,7 +64,7 @@ namespace volition
 					m_loading = false;
 					if (!error.isEmpty())
 					{
-						m_editor->setPlainText(QStringLiteral("Failed to open: %1").arg(error));
+						m_editor->setPlainText(tr("Failed to open: %1").arg(error));
 						return;
 					}
 					m_editor->setPlainText(QString::fromUtf8(utf8Bytes));
@@ -83,8 +83,8 @@ namespace volition
 		}
 		m_loading = true;
 		m_previewTimer->stop();
-		m_editor->setPlainText(QStringLiteral("Loading…"));
-		m_preview->setHtml(QStringLiteral("<p>Loading…</p>"));
+		m_editor->setPlainText(tr("Loading…"));
+		m_preview->setHtml(QStringLiteral("<p>%1</p>").arg(tr("Loading…")));
 		m_loader->start(path);
 		return true;
 	}

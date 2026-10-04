@@ -74,6 +74,7 @@ namespace volition
 
 	class TextDocumentView final : public DocumentView
 	{
+		Q_OBJECT
 	public:
 		explicit TextDocumentView(QWidget* parent = nullptr)
 			: DocumentView(parent)
@@ -81,7 +82,7 @@ namespace volition
 			auto* lay = new QVBoxLayout(this);
 			lay->setContentsMargins(0, 0, 0, 0);
 			m_editor = new QPlainTextEdit(this);
-			m_editor->setPlaceholderText(QStringLiteral("Text document…"));
+			m_editor->setPlaceholderText(tr("Text document…"));
 			m_editor->setLineWrapMode(QPlainTextEdit::NoWrap);
 			m_editor->setTabStopDistance(m_editor->fontMetrics().horizontalAdvance(QLatin1Char(' ')) * 4);
 			m_editor->installEventFilter(this);
@@ -92,11 +93,11 @@ namespace volition
 			auto* findLayout = new QHBoxLayout(findBar);
 			findLayout->setContentsMargins(4, 4, 4, 4);
 			m_findEdit = new QLineEdit(findBar);
-			m_findEdit->setPlaceholderText(QStringLiteral("Find"));
+			m_findEdit->setPlaceholderText(tr("Find"));
 			m_findStatus = new QLabel(findBar);
-			auto* previousButton = new QPushButton(QStringLiteral("Previous"), findBar);
-			auto* nextButton = new QPushButton(QStringLiteral("Next"), findBar);
-			auto* closeButton = new QPushButton(QStringLiteral("Close"), findBar);
+			auto* previousButton = new QPushButton(tr("Previous"), findBar);
+			auto* nextButton = new QPushButton(tr("Next"), findBar);
+			auto* closeButton = new QPushButton(tr("Close"), findBar);
 			findLayout->addWidget(m_findEdit);
 			findLayout->addWidget(m_findStatus);
 			findLayout->addWidget(previousButton);
@@ -140,7 +141,7 @@ namespace volition
 					{
 						if (!error.isEmpty())
 						{
-							m_editor->setPlainText(QStringLiteral("Failed to open: %1").arg(error));
+							m_editor->setPlainText(tr("Failed to open: %1").arg(error));
 							return;
 						}
 						m_editor->setPlainText(QString::fromUtf8(utf8Bytes));
@@ -181,7 +182,7 @@ namespace volition
 			{
 				return false;
 			}
-			m_editor->setPlainText(QStringLiteral("Loading…"));
+			m_editor->setPlainText(tr("Loading…"));
 			m_loader->start(path);
 			return true;
 		}
@@ -233,11 +234,11 @@ namespace volition
 				m_editor->moveCursor(QTextCursor::Start);
 				if (!m_editor->find(m_findEdit->text()))
 				{
-					m_findStatus->setText(QStringLiteral("Not found"));
+					m_findStatus->setText(tr("Not found"));
 					return;
 				}
 			}
-			m_findStatus->setText(QStringLiteral("Found"));
+			m_findStatus->setText(tr("Found"));
 		}
 
 		void findPrevious()
@@ -252,11 +253,11 @@ namespace volition
 				m_editor->moveCursor(QTextCursor::End);
 				if (!m_editor->find(m_findEdit->text(), QTextDocument::FindBackward))
 				{
-					m_findStatus->setText(QStringLiteral("Not found"));
+					m_findStatus->setText(tr("Not found"));
 					return;
 				}
 			}
-			m_findStatus->setText(QStringLiteral("Found"));
+			m_findStatus->setText(tr("Found"));
 		}
 
 		void updateHighlighter(const QString& path)

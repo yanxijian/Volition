@@ -10,7 +10,7 @@ class QCoreApplication;
 
 namespace volition::host
 {
-	/// Loads `volition_<locale>.qm` from `<appDir>/langs/` and persists the choice.
+	/// Loads `volition_<locale>.qm` and companion `mps_<locale>.qm` from `<appDir>/langs/`.
 	class LanguageService final : public QObject
 	{
 		Q_OBJECT
@@ -41,6 +41,7 @@ namespace volition::host
 
 		QCoreApplication* m_app = nullptr;
 		QTranslator m_translator;
+		QTranslator m_mpsTranslator;
 		QString m_language;
 	};
 } // namespace volition::host
