@@ -141,6 +141,9 @@ namespace volition
 					{
 						if (!error.isEmpty())
 						{
+							// Never keep a previous filePath attached to an error
+							// page: Save would overwrite the old file with it.
+							setFilePath({});
 							m_editor->setPlainText(tr("Failed to open: %1").arg(error));
 							return;
 						}
@@ -182,6 +185,9 @@ namespace volition
 			{
 				return false;
 			}
+			// Detach the previous document before the async load: if this path
+			// fails, the error page must not be savable onto the old file.
+			setFilePath({});
 			m_editor->setPlainText(tr("Loading…"));
 			m_loader->start(path);
 			return true;

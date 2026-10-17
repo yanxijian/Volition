@@ -6,6 +6,7 @@
 
 #include <QHash>
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <QVector>
 
@@ -33,7 +34,7 @@ namespace volition::host
 		{
 			QString appName;
 			QString path;
-			mps::host::ShellWindow* shell = nullptr;
+			QPointer<mps::host::ShellWindow> shell;
 		};
 
 		void flushPendingForApp(const QString& appName, qint64 tabId);

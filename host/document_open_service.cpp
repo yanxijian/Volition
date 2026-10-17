@@ -3,9 +3,11 @@
 #include "client_kind.hpp"
 #include "library_store.hpp"
 
+#include <QApplication>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QTimer>
 
 namespace volition::host
 {
@@ -77,13 +79,47 @@ namespace volition::host
 			return;
 		}
 		const QString absolute = QFileInfo(path).absoluteFilePath();
-		rememberOpen(tabId, absolute);
-		m_app->setTabTitle(tabId, QFileInfo(absolute).fileName());
-		m_app->invokeOnTab(tabId, QStringLiteral("volition.open_document"), absolute.toUtf8());
+		// Do not publish the title/path mapping until the Client confirms the
+		// load. A failed open used to leave a filename tab that could never be
+		// retried because the Host index still pointed at it.
+		const QPointer<DocumentOpenService> self(this);
+		m_app->invokeOnTab(tabId, QStringLiteral("volition.open_document"), absolute.toUtf8(),
+						   [self, tabId, absolute](bool ok, const QByteArray&, const QString& error)
+						   {
+							   if (!self)
+							   {
+								   return;
+							   }
+							   if (!ok)
+							   {
+								   self->forgetTab(tabId);
+								   if (auto* shell = self->m_app->shellForTab(tabId))
+								   {
+									   QMessageBox::warning(shell, DocumentOpenService::tr("Volition"),
+															DocumentOpenService::tr("Failed to open:\n%1\n\n%2").arg(absolute, error));
+								   }
+								   return;
+							   }
+							   self->rememberOpen(tabId, absolute);
+							   self->m_app->setTabTitle(tabId, QFileInfo(absolute).fileName());
+						   });
 	}
 
 	void DocumentOpenService::flushPendingForApp(const QString& appName, qint64 tabId)
 	{
+		if (!m_app)
+		{
+			return;
+		}
+		// Only deliver to the window that produced this ContentView. Using the
+		// oldest request for the app regardless of window put documents into the
+		// wrong top-level window when several were being opened at once.
+		mps::host::ShellWindow* targetShell = m_app->shellForTab(tabId);
+		if (!targetShell)
+		{
+			return;
+		}
+		int pick = -1;
 		for (int i = 0; i < m_pending.size();)
 		{
 			if (m_pending[i].appName != appName)
@@ -91,11 +127,25 @@ namespace volition::host
 				++i;
 				continue;
 			}
-			const QString path = m_pending[i].path;
-			m_pending.removeAt(i);
-			sendOpen(tabId, path);
+			if (m_pending[i].shell.isNull())
+			{
+				m_pending.removeAt(i);
+				continue;
+			}
+			if (m_pending[i].shell.data() == targetShell)
+			{
+				pick = i;
+				break;
+			}
+			++i;
+		}
+		if (pick < 0)
+		{
 			return;
 		}
+		const QString path = m_pending[pick].path;
+		m_pending.removeAt(pick);
+		sendOpen(tabId, path);
 	}
 
 	void DocumentOpenService::openPath(mps::host::ShellWindow* shell, const QString& path)
@@ -138,6 +188,28 @@ namespace volition::host
 		}
 
 		m_pending.push_back(Pending{kind, absolute, shell});
+		// A launch can fail without ever producing appContentViewReady (no exe,
+		// handshake timeout, queue dropped). Do not leave the request pending
+		// forever with no feedback.
+		const QPointer<DocumentOpenService> self(this);
+		QTimer::singleShot(30000, this,
+						   [self, kind, absolute]()
+						   {
+							   if (!self)
+							   {
+								   return;
+							   }
+							   for (int i = 0; i < self->m_pending.size(); ++i)
+							   {
+								   if (self->m_pending[i].appName == kind && self->m_pending[i].path == absolute)
+								   {
+									   self->m_pending.removeAt(i);
+									   QMessageBox::warning(QApplication::activeWindow(), DocumentOpenService::tr("Volition"),
+															DocumentOpenService::tr("Timed out opening:\n%1").arg(absolute));
+									   return;
+								   }
+							   }
+						   });
 		m_app->createClientOn(shell, kind);
 	}
 

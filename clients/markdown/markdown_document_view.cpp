@@ -64,6 +64,7 @@ namespace volition
 					m_loading = false;
 					if (!error.isEmpty())
 					{
+						setFilePath({});
 						m_editor->setPlainText(tr("Failed to open: %1").arg(error));
 						return;
 					}
@@ -81,6 +82,7 @@ namespace volition
 		{
 			return false;
 		}
+		setFilePath({});
 		m_loading = true;
 		m_previewTimer->stop();
 		m_editor->setPlainText(tr("Loading…"));
