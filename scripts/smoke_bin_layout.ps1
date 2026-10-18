@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Smoke-check Volition build/bin layout (Abseil pin, PDF client, no nested pdf/).
 
