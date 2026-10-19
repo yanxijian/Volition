@@ -206,6 +206,20 @@
       ],
       "switch_line": true,
       "stale": "warning"
+    },
+    "translations": {
+      "pairs": [
+        [
+          "docs/zh/abseil-pin.md",
+          "docs/en/abseil-pin.md"
+        ],
+        [
+          "docs/zh/toolchain.md",
+          "docs/en/toolchain.md"
+        ]
+      ],
+      "marker": "translated-from:",
+      "stale": "warning"
     }
   },
   "gitattributes": {

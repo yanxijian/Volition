@@ -1,5 +1,7 @@
 # Abseil / in-process pdfium
 
+<!-- translated-from: docs/zh/abseil-pin.md sha256:3a2714c37ad5 -->
+
 Volition PDF and MPS share one `abseil_dll`:
 
 - [AbseilPin](https://github.com/yanxijian/AbseilPin) (local sibling `D:\Codes\AbseilPin`)

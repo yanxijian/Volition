@@ -1,5 +1,7 @@
 # Volition toolchain contract (VolitionToolchain)
 
+<!-- translated-from: docs/zh/toolchain.md sha256:4fe70672fb7a -->
+
 Volition and its dependencies (MPS, QTE, QFR, AbseilPin, pdfium product path) share one compile contract. **Windows** is the reference; macOS / Linux keep the same C++ / extensions rules and use each platform’s default shell compiler.
 
 | Item | Value |
