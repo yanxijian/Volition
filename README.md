@@ -1,67 +1,69 @@
 # Volition
 
-**简体中文** · [English](README.en.md)
+**English** · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
 [![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-多类型文档 **阅读 / 编辑器**：以 [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell)（MPS）为壳，按技术栈拆 Client（`text` / `markdown` / `pdf`）。每种 Client = **薄 exe + 业务 DLL**（形态 A：Host 只启 exe）。
+Multi-format document **reader / editor** on [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell) (MPS). One Client per format — `text`, `markdown`, `pdf`. Every Client is a **thin exe plus a business DLL** (form A: the Host only launches the exe).
 
-首期平台：**Windows（MPS 形态 A）**。
+Phase-1 platform: **Windows (MPS form A)**.
 
-## 特性（规划）
+## Planned features
 
-- **多格式同壳**：PDF、Markdown、txt、XML 等在同一 Host 窗口多 Tab 打开
-- **进程隔离**：三 Client 进程；业务在 DLL，由对应薄 exe 加载
-- **壳托管**：外框 / Tab / 嵌入 / IPC 交给 MPS
-- **主题 / Ribbon**：[QThemeEngine](https://github.com/yanxijian/QThemeEngine)；Client 内 [QFluentRibbon](https://github.com/yanxijian/QFluentRibbon)
-- **以后再做**（已对照代码）：大文件异步/虚拟滚动、PDF 栅格离 UI 线程；见 [product-plan §10](docs/zh/product-plan.md)
+- **Many formats, one shell**: PDF, Markdown, txt, XML, … as tabs in the same Host window
+- **Process isolation**: three Client processes; business logic lives in DLLs loaded by the matching thin exe
+- **Shell hosting**: frame, tabs, embedding and IPC are left to MPS
+- **Look**: [QThemeEngine](https://github.com/yanxijian/QThemeEngine) for theming, [QFluentRibbon](https://github.com/yanxijian/QFluentRibbon) inside the Client DLLs
+- **Later, still unverified**: async/virtualised large text and Markdown; PDF raster off the UI thread; keep AbseilPin. Details: [product-plan §10](docs/zh/product-plan.md)
 
-## 要求
+## Requirements
 
-| 项 | 说明 |
-|----|------|
+| Item | Notes |
+|------|--------|
 | Qt | **6.8+** Widgets |
-| 框架 | [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell)（旁路源码或已安装 prefix） |
-| 工具链 | CMake 3.21+、Ninja；Windows 上 MSVC x64（`vcvars`） |
-| PDF | [pdfium_all](https://github.com/yanxijian/pdfium_all)（staged `output` 或安装包） |
-| 格式 | `clang-format` 20；`python scripts/format_source.py` |
+| Framework | [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell) (sibling source tree or installed prefix) |
+| Toolchain | CMake 3.21+, Ninja; MSVC x64 on Windows (`vcvars`) |
+| PDF | [pdfium_all](https://github.com/yanxijian/pdfium_all) (staged `output` or installed package) |
+| Format | `clang-format` 20; `python scripts/format_source.py` |
 
-## 现状
+## Status
 
-| 能力 | 状态 |
-|------|------|
-| 产品定名 **Volition** | 完成 |
-| 产品方案（三 Client / 薄 exe+DLL / 双层 Tab） | [product-plan.md](docs/zh/product-plan.md) |
-| Host + text / markdown / pdf（薄 exe+DLL） | 可用 |
-| Open 文件（后缀→kind → Invoke 打开） | 可用 |
-| text 读写 + 查找 + XML 高亮 | 可用 |
-| markdown 档 A（md4c → QTextBrowser） | 可用 |
-| pdf 阅读（同进程 pdfium） | 可用（需旁路 [pdfium_all](https://github.com/yanxijian/pdfium_all)） |
-| CI（format + Windows Qt） | [Actions](https://github.com/yanxijian/Volition/actions/workflows/ci.yml) |
+| Capability | Status |
+|------------|--------|
+| Product name **Volition** | Done |
+| Product plan (three Clients / thin exe+DLL / dual-tab) | [product-plan.md](docs/zh/product-plan.md) |
+| Host + text / markdown / pdf (thin exe+DLL) | Working |
+| Open a file (extension → kind → Invoke) | Working |
+| text read/write + search + XML highlighting | Working |
+| markdown tier A (md4c → QTextBrowser) | Working |
+| pdf viewer (in-process pdfium) | Working (needs sibling [pdfium_all](https://github.com/yanxijian/pdfium_all)) |
+| CI (format + Windows Qt) | [Actions](https://github.com/yanxijian/Volition/actions/workflows/ci.yml) |
 
-文本 Client 当前按后缀支持 `.txt`、`.xml`、`.json`、`.ini`、`.log`、`.csv`；按 `Ctrl+F` 可打开查找栏。单元测试可通过 `-DVOLITION_BUILD_TESTS=ON` 启用。
+The text Client handles `.txt`, `.xml`, `.json`, `.ini`, `.log` and `.csv` by extension; `Ctrl+F` opens the search bar. Unit tests are enabled with `-DVOLITION_BUILD_TESTS=ON`.
 
-## 仓库布局
+## Layout
 
 ```text
 host/                 volition_host
-clients/common/       VolitionClientRun 导出约定
+clients/common/       VolitionClientRun export contract
 clients/text/         volition_text.exe + .dll
 clients/markdown/     volition_markdown.exe + .dll
 clients/pdf/          volition_pdf.exe + .dll
-cmake/                依赖解析
-scripts/              构建 / 部署
+cmake/                dependency resolution
+scripts/              build / deploy
 docs/zh|en/
 ```
 
-## 文档
+## Documentation
 
-| 主题 | 中文（主） | English |
-|------|------------|---------|
-| 产品方案 | [product-plan.md](docs/zh/product-plan.md) | — |
-| Abseil / PDF 同进程路线 | [abseil-pin.md](docs/zh/abseil-pin.md) | — |
-| 本 README | [README.md](README.md) | [README.en.md](README.en.md) |
+The design notes are written in English and Simplified Chinese only; this README is the document kept in sync across all four languages.
+
+| Topic | English | 简体中文 |
+|-------|---------|----------|
+| Product plan | — | [product-plan.md](docs/zh/product-plan.md) |
+| Toolchain contract | [toolchain.md](docs/en/toolchain.md) | [toolchain.md](docs/zh/toolchain.md) |
+| Abseil / pdfium staging | [abseil-pin.md](docs/en/abseil-pin.md) | [abseil-pin.md](docs/zh/abseil-pin.md) |
 
 ## License
 
