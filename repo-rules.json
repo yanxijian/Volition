@@ -219,7 +219,18 @@
         ]
       ],
       "marker": "translated-from:",
-      "stale": "warning"
+      "stale": "warning",
+      "cover": [
+        {
+          "from": "docs/zh",
+          "to": "docs/en",
+          "ignore": [
+            "product-plan.md"
+          ],
+          "missing": "error"
+        }
+      ],
+      "untracked": true
     }
   },
   "gitattributes": {
