@@ -255,5 +255,9 @@
       "actions/workflows/",
       "img.shields.io/badge/License"
     ]
+  },
+  "about": {
+    "description": "Multi-format document reader/editor on MultiProcessShell | 基于 MultiProcessShell 的多格式文档阅读/编辑器",
+    "order": "en-zh"
   }
 }
