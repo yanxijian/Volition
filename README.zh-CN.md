@@ -2,10 +2,14 @@
 
 **简体中文** · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
-<!-- translated-from: README.md sha256:a832dec02917 -->
-
 [![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Qt](https://img.shields.io/badge/Qt-6.8%2B-green.svg)](https://www.qt.io/)
+[![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+<!-- translated-from: README.md sha256:03e35b8da216 -->
+
 
 多类型文档 **阅读 / 编辑器**：以 [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell)（MPS）为壳，按格式拆 Client（`text` / `markdown` / `pdf`）。每种 Client = **薄 exe + 业务 DLL**（形态 A：Host 只负责启动 exe）。
 

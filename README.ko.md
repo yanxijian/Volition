@@ -2,10 +2,14 @@
 
 **한국어** · [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md)
 
-<!-- translated-from: README.md sha256:a832dec02917 -->
-
 [![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Qt](https://img.shields.io/badge/Qt-6.8%2B-green.svg)](https://www.qt.io/)
+[![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+<!-- translated-from: README.md sha256:03e35b8da216 -->
+
 
 [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell)(MPS)을 셸로 사용하는 멀티 포맷 문서 **뷰어/편집기**입니다. 포맷마다 Client를 나누어 두었고(`text` / `markdown` / `pdf`), 각 Client는 **얇은 exe와 비즈니스 DLL** 한 쌍으로 이루어집니다(형태 A: Host는 exe만 실행).
 

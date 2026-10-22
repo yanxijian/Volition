@@ -2,10 +2,14 @@
 
 **日本語** · [English](README.md) · [简体中文](README.zh-CN.md) · [한국어](README.ko.md)
 
-<!-- translated-from: README.md sha256:a832dec02917 -->
-
 [![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Qt](https://img.shields.io/badge/Qt-6.8%2B-green.svg)](https://www.qt.io/)
+[![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+<!-- translated-from: README.md sha256:03e35b8da216 -->
+
 
 [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell)（MPS）をシェルにした、複数形式対応のドキュメント**閲覧／編集**アプリケーションです。形式ごとに Client を分けており（`text`／`markdown`／`pdf`）、各 Client は**薄い exe と業務 DLL**の組で構成されます（形態 A：Host は exe を起動するだけ）。
 

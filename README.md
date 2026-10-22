@@ -4,6 +4,7 @@
 
 [![CI](https://github.com/yanxijian/Volition/actions/workflows/ci.yml/badge.svg)](https://github.com/yanxijian/Volition/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Qt](https://img.shields.io/badge/Qt-6.8%2B-green.svg)](https://www.qt.io/)
 
 Multi-format document **reader / editor** on [MultiProcessShell](https://github.com/yanxijian/MultiProcessShell) (MPS). One Client per format — `text`, `markdown`, `pdf`. Every Client is a **thin exe plus a business DLL** (form A: the Host only launches the exe).
 
